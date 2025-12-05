@@ -2,29 +2,23 @@
 
 #include <token_type.hpp>
 #include <string>
+#include <variant>
 
-std::string printTokenType(TokenType type);
+using Literal = std::variant<double, std::string>;
 
 class Token
 {
   public:
-    Token(TokenType type, std::string lexeme, void* literal, int line)
-      : type{ type }
-      , lexeme{ lexeme }
-      , literal{ literal }
-      , line{ line }
-    {
-    }
+    explicit Token(TokenType type, std::string lexeme, Literal literal, int line);
 
-    std::string toString()
-    {
-        std::string name = printTokenType(type) + " " + lexeme + " " + "[insert literal here]";
-        return name;
-    }
+    std::string toString();
+
+    static std::string displayType(const TokenType token);
+    static std::string displayLiteral(const TokenType type, const Literal literal);
 
   private:
+    const Literal literal;
     const TokenType type;
     const std::string lexeme;
-    const void* literal;
     const int line;
 };
