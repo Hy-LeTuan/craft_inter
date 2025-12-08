@@ -1,6 +1,5 @@
 #include "token_type.hpp"
 #include <cctype>
-#include <iostream>
 #include <scanner.hpp>
 #include <lox.hpp>
 #include <string>
@@ -33,14 +32,13 @@ Scanner::Scanner(std::string source)
 
 std::vector<Token> Scanner::scanTokens()
 {
-    std::cout << "source: " << source << std::endl; 
     while (!isAtEnd())
     {
         start = current;
         scanToken();
     }
 
-    tokens.emplace_back(TokenType::__EOF__, std::string{}, Literal{}, line);
+    tokens.emplace_back(TokenType::__EOF__, std::string{}, LiteralValue{}, line);
 
     return tokens;
 }
@@ -105,6 +103,17 @@ void Scanner::scanToken()
                 {
                     advance();
                 }
+            }
+            else if (match('*'))
+            {
+                while ((peek() != '*' || (peek() == '*' && peekNext() != '/')) && !isAtEnd())
+                {
+                    advance();
+                }
+
+                // move past the final closing `*/`
+                advance();
+                advance();
             }
             else
             {
@@ -178,7 +187,7 @@ void Scanner::number()
         }
     }
 
-    Literal value = std::stod(source.substr(start, current - start));
+    LiteralValue value = std::stod(source.substr(start, current - start));
     addToken(TokenType::NUMBER, value);
 }
 
@@ -202,7 +211,7 @@ void Scanner::string()
 
     advance();
 
-    Literal value = source.substr(start + 1, current - start - 2);
+    LiteralValue value = source.substr(start + 1, current - start - 2);
     addToken(TokenType::STRING, value);
 }
 
@@ -249,16 +258,11 @@ char Scanner::advance()
 
 void Scanner::addToken(TokenType type)
 {
-    addToken(type, Literal{});
+    addToken(type, LiteralValue{});
 }
 
-void Scanner::addToken(TokenType type, Literal literal)
+void Scanner::addToken(TokenType type, LiteralValue literal)
 {
     std::string text = source.substr(start, current - start);
-    
-    std::cout << "start: " << start << std::endl;
-    std::cout << "current: " << current << std::endl;
-    std::cout << "text received: " << text << std::endl;
-
     tokens.emplace_back(type, text, literal, line);
 }

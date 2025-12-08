@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(jlox VERSION 1.0)
 
-set(CLOX_SOURCES src/main.cpp;src/token.cpp;src/scanner.cpp;src/lox.cpp)
+set(CLOX_SOURCES src/main.cpp;src/token.cpp;src/scanner.cpp;src/lox.cpp;src/expression.cpp)
 
 add_executable(${PROJECT_NAME} ${CLOX_SOURCES})
 

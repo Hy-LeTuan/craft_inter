@@ -1,6 +1,6 @@
 #include <token.hpp>
 
-Token::Token(TokenType type, std::string lexeme, Literal literal, int line)
+Token::Token(TokenType type, std::string lexeme, LiteralValue literal, int line)
   : type{ type }
   , lexeme{ lexeme }
   , literal{ std::move(literal) }
@@ -21,7 +21,7 @@ std::string Token::toString()
     return name;
 }
 
-std::string Token::displayLiteral(TokenType type, Literal literal)
+std::string Token::displayLiteral(TokenType type, LiteralValue literal)
 {
     switch (type)
     {

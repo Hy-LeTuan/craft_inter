@@ -4,20 +4,20 @@
 #include <string>
 #include <variant>
 
-using Literal = std::variant<double, std::string>;
+using LiteralValue = std::variant<double, std::string>;
 
 class Token
 {
   public:
-    explicit Token(TokenType type, std::string lexeme, Literal literal, int line);
+    explicit Token(TokenType type, std::string lexeme, LiteralValue literal, int line);
 
     std::string toString();
 
     static std::string displayType(const TokenType token);
-    static std::string displayLiteral(const TokenType type, const Literal literal);
+    static std::string displayLiteral(const TokenType type, const LiteralValue literal);
 
   private:
-    const Literal literal;
+    const LiteralValue literal;
     const TokenType type;
     const std::string lexeme;
     const int line;
