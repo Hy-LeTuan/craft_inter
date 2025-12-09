@@ -2,7 +2,23 @@ from io import TextIOWrapper
 import sys
 
 
-def defineType(file: TextIOWrapper, className: str, fields: str):
+def declareVisitor(file: TextIOWrapper, baseName: str, types: list[str]):
+    _ = file.write(f"class Visitor\n")
+    _ = file.write(f"{{\n")
+    _ = file.write(f"public:\n")
+
+    for type in types:
+        [typeName, fields] = type.split(":")
+
+        typeName = typeName.strip()
+        fields = fields.strip()
+
+        _ = file.write(f"std::any visit{typeName + baseName}({typeName}* {baseName.lower()});\n")
+
+    _ = file.write(f"}};\n")
+
+
+def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
     _ = file.write(f"{className}::{className}({fields})\n")
     _ = file.write(f"  : Expr()\n")
 
@@ -16,21 +32,30 @@ def defineType(file: TextIOWrapper, className: str, fields: str):
     _ = file.write("{\n")
     _ = file.write("}\n")
 
+    _ = file.write("\n")
+
+    _ = file.write(f"std::any {className}::accept(Visitor& visitor)\n")
+    _ = file.write(f"{{\n")
+    _ = file.write(f"return visitor.visit{className + baseName}(this);\n")
+    _ = file.write(f"}}\n")
+
 
 def declareType(file: TextIOWrapper, baseName: str, className: str, fields: str):
     _ = file.write(f"class {className} : public {baseName}\n")
     _ = file.write("{\n")
     _ = file.write("public:\n")
     _ = file.write(f"{className}({fields});\n")
+    _ = file.write(f"std::any accept(Visitor& visitor) override;\n")
     _ = file.write("\n")
-    _ = file.write("private:\n")
 
+    _ = file.write("private:\n")
     for field in fields.split(", "):
         [fieldType, fieldName] = field.split()
         fieldType = fieldType[:len(fieldType) - 2]
         _ = file.write(f"const std::unique_ptr<{fieldType}> {fieldName};\n")
 
     _ = file.write("};\n")
+    _ = file.write("\n")
 
 
 def defineAst(outputDir: str, baseName: str, types: list[str]):
@@ -41,17 +66,24 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     headerFile = open(headerPath, 'w', encoding="utf-8")
 
     _ = headerFile.write("#pragma once\n")
+    _ = headerFile.write("\n")
     _ = headerFile.write("#include <token.hpp>\n")
     _ = headerFile.write("#include <memory>\n")
+    _ = headerFile.write("#include <any>\n")
     _ = headerFile.write("\n")
+
+    _ = headerFile.write(f"class Visitor;\n")
+    _ = headerFile.write(f"\n")
 
     _ = headerFile.write(f"class {baseName}\n")
     _ = headerFile.write("{\n")
     _ = headerFile.write("public:\n")
     _ = headerFile.write("Expr() = default;\n")
+    _ = headerFile.write("std::any virtual accept(Visitor& visitor);\n")
     _ = headerFile.write("};\n")
     _ = headerFile.write("\n")
 
+    _ = srcFile.write("#include <any>\n")
     _ = srcFile.write("#include <expr.hpp>\n")
     _ = srcFile.write("#include <token.hpp>\n")
     _ = srcFile.write("\n")
@@ -65,10 +97,12 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
         declareType(headerFile, baseName, className, fields)
         _ = headerFile.write("\n")
 
-        defineType(srcFile, className, fields)
+        defineType(srcFile, baseName,className, fields)
         _ = srcFile.write("\n")
 
         continue
+
+    declareVisitor(headerFile, baseName, types)
 
     headerFile.close()
     srcFile.close()
