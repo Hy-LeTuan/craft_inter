@@ -8,7 +8,12 @@ Token::Token(TokenType type, std::string lexeme, LiteralValue literal, int line)
 {
 }
 
-std::string Token::toString()
+std::string Token::getLexeme() const
+{
+    return this->lexeme;
+}
+
+std::string Token::toString() const
 {
     std::string literal_repr = Token::displayLiteral(type, literal);
     std::string name = Token::displayType(type) + " lexeme: [" + lexeme + "]";

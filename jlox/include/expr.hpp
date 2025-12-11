@@ -1,7 +1,6 @@
 #pragma once
 
 #include <token.hpp>
-#include <memory>
 #include <any>
 
 class Visitor;
@@ -10,57 +9,68 @@ class Expr
 {
   public:
     Expr() = default;
-    std::any virtual accept(Visitor& visitor);
+    virtual ~Expr() = 0;
+
+    Expr(const Expr&) = delete;
+    Expr& operator=(const Expr&) = delete;
+    Expr(Expr&&) = delete;
+    Expr& operator=(Expr&&) = delete;
+
+    virtual std::any accept(Visitor* visitor) const = 0;
 };
 
 class Binary : public Expr
 {
   public:
-    Binary(Expr&& left, Token&& op, Expr&& right);
-    std::any accept(Visitor& visitor) override;
+    Binary(Expr* left, Token* op, Expr* right);
+    ~Binary() override;
 
-  private:
-    const std::unique_ptr<Expr> left;
-    const std::unique_ptr<Token> op;
-    const std::unique_ptr<Expr> right;
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* left;
+    const Token* op;
+    const Expr* right;
 };
 
 class Grouping : public Expr
 {
   public:
-    Grouping(Expr&& expression);
-    std::any accept(Visitor& visitor) override;
+    Grouping(Expr* expression);
+    ~Grouping() override;
 
-  private:
-    const std::unique_ptr<Expr> expression;
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* expression;
 };
 
 class Literal : public Expr
 {
   public:
-    Literal(LiteralValue&& value);
-    std::any accept(Visitor& visitor) override;
+    Literal(LiteralValue* value);
+    ~Literal() override;
 
-  private:
-    const std::unique_ptr<LiteralValue> value;
+    std::any accept(Visitor* visitor) const override;
+
+    const LiteralValue* value;
 };
 
 class Unary : public Expr
 {
   public:
-    Unary(Token&& op, Expr&& right);
-    std::any accept(Visitor& visitor) override;
+    Unary(Token* op, Expr* right);
+    ~Unary() override;
 
-  private:
-    const std::unique_ptr<Token> op;
-    const std::unique_ptr<Expr> right;
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* op;
+    const Expr* right;
 };
 
 class Visitor
 {
   public:
-    std::any visitBinaryExpr(Binary* expr);
-    std::any visitGroupingExpr(Grouping* expr);
-    std::any visitLiteralExpr(Literal* expr);
-    std::any visitUnaryExpr(Unary* expr);
+    virtual std::any visitBinaryExpr(const Binary* expr) = 0;
+    virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
+    virtual std::any visitLiteralExpr(const Literal* expr) = 0;
+    virtual std::any visitUnaryExpr(const Unary* expr) = 0;
 };

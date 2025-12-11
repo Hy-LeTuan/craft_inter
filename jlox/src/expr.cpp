@@ -2,49 +2,76 @@
 #include <expr.hpp>
 #include <token.hpp>
 
-Binary::Binary(Expr&& left, Token&& op, Expr&& right)
+Expr::~Expr() {
+
+}
+
+Binary::Binary(Expr* left, Token* op, Expr* right)
   : Expr()
-  , left{ std::make_unique<Expr>(std::move(left)) }
-  , op{ std::make_unique<Token>(std::move(op)) }
-  , right{ std::make_unique<Expr>(std::move(right)) }
+  , left{ left }
+  , op{ op }
+  , right{ right }
 {
 }
 
-std::any Binary::accept(Visitor& visitor)
+Binary::~Binary()
 {
-    return visitor.visitBinaryExpr(this);
+    delete left;
+    delete op;
+    delete right;
 }
 
-Grouping::Grouping(Expr&& expression)
+std::any Binary::accept(Visitor* visitor) const
+{
+    return visitor->visitBinaryExpr(this);
+}
+
+Grouping::Grouping(Expr* expression)
   : Expr()
-  , expression{ std::make_unique<Expr>(std::move(expression)) }
+  , expression{ expression }
 {
 }
 
-std::any Grouping::accept(Visitor& visitor)
+Grouping::~Grouping()
 {
-    return visitor.visitGroupingExpr(this);
+    delete expression;
 }
 
-Literal::Literal(LiteralValue&& value)
+std::any Grouping::accept(Visitor* visitor) const
+{
+    return visitor->visitGroupingExpr(this);
+}
+
+Literal::Literal(LiteralValue* value)
   : Expr()
-  , value{ std::make_unique<LiteralValue>(std::move(value)) }
+  , value{ value }
 {
 }
 
-std::any Literal::accept(Visitor& visitor)
+Literal::~Literal()
 {
-    return visitor.visitLiteralExpr(this);
+    delete value;
 }
 
-Unary::Unary(Token&& op, Expr&& right)
+std::any Literal::accept(Visitor* visitor) const
+{
+    return visitor->visitLiteralExpr(this);
+}
+
+Unary::Unary(Token* op, Expr* right)
   : Expr()
-  , op{ std::make_unique<Token>(std::move(op)) }
-  , right{ std::make_unique<Expr>(std::move(right)) }
+  , op{ op }
+  , right{ right }
 {
 }
 
-std::any Unary::accept(Visitor& visitor)
+Unary::~Unary()
 {
-    return visitor.visitUnaryExpr(this);
+    delete op;
+    delete right;
+}
+
+std::any Unary::accept(Visitor* visitor) const
+{
+    return visitor->visitUnaryExpr(this);
 }

@@ -13,31 +13,10 @@ def declareVisitor(file: TextIOWrapper, baseName: str, types: list[str]):
         typeName = typeName.strip()
         fields = fields.strip()
 
-        _ = file.write(f"std::any visit{typeName + baseName}({typeName}* {baseName.lower()});\n")
+        _ = file.write(
+            f"virtual std::any visit{typeName + baseName}({typeName}* {baseName.lower()}) = 0;\n")
 
     _ = file.write(f"}};\n")
-
-
-def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
-    _ = file.write(f"{className}::{className}({fields})\n")
-    _ = file.write(f"  : Expr()\n")
-
-    for field in fields.split(", "):
-        [fieldType, fieldName] = field.split()
-        fieldType = fieldType[:len(fieldType) - 2]
-
-        _ = file.write(
-            f"  , {fieldName}{{ std::make_unique<{fieldType}>(std::move({fieldName})) }}\n")
-
-    _ = file.write("{\n")
-    _ = file.write("}\n")
-
-    _ = file.write("\n")
-
-    _ = file.write(f"std::any {className}::accept(Visitor& visitor)\n")
-    _ = file.write(f"{{\n")
-    _ = file.write(f"return visitor.visit{className + baseName}(this);\n")
-    _ = file.write(f"}}\n")
 
 
 def declareType(file: TextIOWrapper, baseName: str, className: str, fields: str):
@@ -45,17 +24,46 @@ def declareType(file: TextIOWrapper, baseName: str, className: str, fields: str)
     _ = file.write("{\n")
     _ = file.write("public:\n")
     _ = file.write(f"{className}({fields});\n")
-    _ = file.write(f"std::any accept(Visitor& visitor) override;\n")
+    _ = file.write(f"~{className}() override;\n")
+    _ = file.write(f"\n")
+    _ = file.write(f"std::any accept(Visitor* visitor) override;\n")
     _ = file.write("\n")
-
-    _ = file.write("private:\n")
     for field in fields.split(", "):
-        [fieldType, fieldName] = field.split()
-        fieldType = fieldType[:len(fieldType) - 2]
-        _ = file.write(f"const std::unique_ptr<{fieldType}> {fieldName};\n")
+        _ = file.write(f"const {field};\n")
 
     _ = file.write("};\n")
     _ = file.write("\n")
+
+
+def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
+    _ = file.write(f"{className}::{className}({fields})\n")
+    _ = file.write(f": Expr()\n")
+
+    for field in fields.split(", "):
+        [fieldType, fieldName] = field.split()
+        fieldType = fieldType[:len(fieldType) - 2]
+
+        _ = file.write(
+            f"  , {fieldName}{{ {fieldName} }}\n")
+
+    _ = file.write("{\n")
+    _ = file.write("}\n")
+
+    _ = file.write("\n")
+
+    _ = file.write(f"{className}::~{className}()\n")
+    _ = file.write(f"{{\n")
+    for field in fields.split(", "):
+        fieldName = field.split()[1]
+        _ = file.write(f"delete {fieldName};\n")
+    _ = file.write(f"}}\n")
+
+    _ = file.write("\n")
+
+    _ = file.write(f"std::any {className}::accept(Visitor* visitor)\n")
+    _ = file.write(f"{{\n")
+    _ = file.write(f"return visitor->visit{className + baseName}(this);\n")
+    _ = file.write(f"}}\n")
 
 
 def defineAst(outputDir: str, baseName: str, types: list[str]):
@@ -68,7 +76,6 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write("#pragma once\n")
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <token.hpp>\n")
-    _ = headerFile.write("#include <memory>\n")
     _ = headerFile.write("#include <any>\n")
     _ = headerFile.write("\n")
 
@@ -79,7 +86,16 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write("{\n")
     _ = headerFile.write("public:\n")
     _ = headerFile.write("Expr() = default;\n")
-    _ = headerFile.write("std::any virtual accept(Visitor& visitor);\n")
+    _ = headerFile.write("virtual ~Expr() = 0;\n")
+    _ = headerFile.write("\n")
+
+    _ = headerFile.write("Expr(const Expr&) = delete;\n")
+    _ = headerFile.write("Expr& operator=(const Expr&) = delete;\n")
+    _ = headerFile.write("Expr(Expr&&) = delete;\n")
+    _ = headerFile.write("Expr& operator=(Expr&&) = delete;\n")
+    _ = headerFile.write("\n")
+
+    _ = headerFile.write("virtual std::any accept(Visitor* visitor) = 0;\n")
     _ = headerFile.write("};\n")
     _ = headerFile.write("\n")
 
@@ -97,7 +113,7 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
         declareType(headerFile, baseName, className, fields)
         _ = headerFile.write("\n")
 
-        defineType(srcFile, baseName,className, fields)
+        defineType(srcFile, baseName, className, fields)
         _ = srcFile.write("\n")
 
         continue
@@ -116,10 +132,10 @@ def main():
     outputDir: str = sys.argv[1]
 
     defineAst(outputDir, "Expr", [
-        "Binary   : Expr&& left, Token&& op, Expr&& right",
-        "Grouping : Expr&& expression",
-        "Literal  : LiteralValue&& value",
-        "Unary    : Token&& op, Expr&& right"
+        "Binary   : Expr* left, Token* op, Expr* right",
+        "Grouping : Expr* expression",
+        "Literal  : LiteralValue* value",
+        "Unary    : Token* op, Expr* right"
     ])
 
 
