@@ -30,7 +30,7 @@ Scanner::Scanner(std::string source)
     line = 1;
 }
 
-std::vector<Token> Scanner::scanTokens()
+std::vector<Token*> Scanner::scanTokens()
 {
     while (!isAtEnd())
     {
@@ -38,7 +38,7 @@ std::vector<Token> Scanner::scanTokens()
         scanToken();
     }
 
-    tokens.emplace_back(TokenType::__EOF__, std::string{}, LiteralValue{}, line);
+    tokens.push_back(new Token{ TokenType::__EOF__, std::string{}, Object{}, line });
 
     return tokens;
 }
@@ -154,9 +154,9 @@ void Scanner::identifier()
         advance();
     }
 
+    TokenType type;
     std::string text = source.substr(start, current - start);
     auto text_it = keywords.find(text);
-    TokenType type;
 
     if (text_it == keywords.end())
     {
@@ -187,7 +187,7 @@ void Scanner::number()
         }
     }
 
-    LiteralValue value = std::stod(source.substr(start, current - start));
+    Object value = std::stod(source.substr(start, current - start));
     addToken(TokenType::NUMBER, value);
 }
 
@@ -211,7 +211,7 @@ void Scanner::string()
 
     advance();
 
-    LiteralValue value = source.substr(start + 1, current - start - 2);
+    Object value = source.substr(start + 1, current - start - 2);
     addToken(TokenType::STRING, value);
 }
 
@@ -258,11 +258,11 @@ char Scanner::advance()
 
 void Scanner::addToken(TokenType type)
 {
-    addToken(type, LiteralValue{});
+    addToken(type, std::monostate{});
 }
 
-void Scanner::addToken(TokenType type, LiteralValue literal)
+void Scanner::addToken(TokenType type, Object literal)
 {
     std::string text = source.substr(start, current - start);
-    tokens.emplace_back(type, text, literal, line);
+    tokens.push_back(new Token{ type, text, literal, line });
 }

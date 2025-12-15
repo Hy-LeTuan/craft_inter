@@ -17,18 +17,7 @@ std::any AstPrinter::visitGroupingExpr(const Grouping* expr)
 
 std::any AstPrinter::visitLiteralExpr(const Literal* expr)
 {
-    if (expr->value->index() == 0)
-    {
-        double val = std::get<double>(*(expr->value));
-        std::cout << "val: " << val << std::endl;
-
-        return std::to_string(val);
-    }
-    else
-    {
-        std::string val = std::get<std::string>(*(expr->value));
-        return val;
-    }
+    return Token::displayLiteral(*expr->value);
 }
 
 std::any AstPrinter::visitUnaryExpr(const Unary* expr)

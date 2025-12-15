@@ -42,7 +42,7 @@ std::any Grouping::accept(Visitor* visitor) const
     return visitor->visitGroupingExpr(this);
 }
 
-Literal::Literal(LiteralValue* value)
+Literal::Literal(Object* value)
   : Expr()
   , value{ value }
 {

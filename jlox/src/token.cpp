@@ -1,6 +1,16 @@
 #include <token.hpp>
 
-Token::Token(TokenType type, std::string lexeme, LiteralValue literal, int line)
+TokenType Token::getType() const
+{
+    return type;
+}
+
+int Token::getLine() const
+{
+    return line;
+}
+
+Token::Token(TokenType type, std::string lexeme, Object literal, int line)
   : type{ type }
   , lexeme{ lexeme }
   , literal{ std::move(literal) }
@@ -13,12 +23,17 @@ std::string Token::getLexeme() const
     return this->lexeme;
 }
 
+Object* Token::getLiteral() const
+{
+    return new Object{ literal };
+}
+
 std::string Token::toString() const
 {
-    std::string literal_repr = Token::displayLiteral(type, literal);
+    std::string literal_repr = Token::displayLiteral(literal);
     std::string name = Token::displayType(type) + " lexeme: [" + lexeme + "]";
 
-    if (!literal_repr.empty())
+    if (literal_repr != "Nil")
     {
         name += " literal: {" + literal_repr + "}";
     }
@@ -26,21 +41,9 @@ std::string Token::toString() const
     return name;
 }
 
-std::string Token::displayLiteral(TokenType type, LiteralValue literal)
+std::string Token::displayLiteral(Object literal)
 {
-    switch (type)
-    {
-        case TokenType::STRING:
-        {
-            return std::get<std::string>(literal);
-        }
-        case TokenType::NUMBER:
-        {
-            return std::to_string(std::get<double>(literal));
-        }
-        default:
-            return std::string{};
-    }
+    return std::visit(ObjectValueVisitor{}, literal);
 }
 
 std::string Token::displayType(TokenType type)

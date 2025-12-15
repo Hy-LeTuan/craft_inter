@@ -6,8 +6,13 @@
 
 #include <lox.hpp>
 #include <scanner.hpp>
+#include <parser.hpp>
+#include <ast_printer.hpp>
 
 bool HAD_ERROR = false;
+bool HAD_RUNTIME_ERROR = false;
+
+Interpreter Lox::interpreter = Interpreter{};
 
 void Lox::run(std::string source)
 {
@@ -19,9 +24,16 @@ void Lox::run(std::string source)
     Scanner scanner{ source };
     auto tokens = scanner.scanTokens();
 
-    for (auto &token : tokens) {
-        std::cout << token.toString() << std::endl;
+    Parser parser{ std::move(tokens) };
+    Expr* expr = parser.parse();
+
+    if (HAD_ERROR)
+    {
+        return;
     }
+
+    std::cout << AstPrinter{}.print(expr) << std::endl;
+    Lox::interpreter.interpret(expr);
 }
 
 void Lox::runPrompt()
@@ -71,6 +83,15 @@ void Lox::runFile(const char* filename_ptr)
 
     std::string content = sstream.str();
     run(content);
+
+    if (HAD_ERROR)
+    {
+        exit(65);
+    }
+    if (HAD_RUNTIME_ERROR)
+    {
+        exit(75);
+    }
 }
 
 void Lox::report(int line, std::string where, std::string message)
@@ -82,4 +103,22 @@ void Lox::report(int line, std::string where, std::string message)
 void Lox::error(int line, std::string message)
 {
     report(line, "", message);
+}
+
+void Lox::error(Token* token, std::string message)
+{
+    if (token->getType() == TokenType::__EOF__)
+    {
+        report(token->getLine(), " at end", message);
+    }
+    else
+    {
+        report(token->getLine(), " at '" + token->getLexeme() + "'", message);
+    }
+}
+
+void Lox::runtimeError(RuntimeError error)
+{
+    std::cout << error.getMessage() + "\n[line " + std::to_string(error.getToken()->getLine()) +
+        "]";
 }
