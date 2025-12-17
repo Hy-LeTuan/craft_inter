@@ -46,12 +46,12 @@ class Grouping : public Expr
 class Literal : public Expr
 {
   public:
-    Literal(Object* value);
+    Literal(LiteralValue* value);
     ~Literal() override;
 
     std::any accept(Visitor* visitor) const override;
 
-    const Object* value;
+    const LiteralValue* value;
 };
 
 class Unary : public Expr

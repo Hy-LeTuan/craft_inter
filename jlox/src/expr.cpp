@@ -2,8 +2,8 @@
 #include <expr.hpp>
 #include <token.hpp>
 
-Expr::~Expr() {
-
+Expr::~Expr()
+{
 }
 
 Binary::Binary(Expr* left, Token* op, Expr* right)
@@ -42,7 +42,7 @@ std::any Grouping::accept(Visitor* visitor) const
     return visitor->visitGroupingExpr(this);
 }
 
-Literal::Literal(Object* value)
+Literal::Literal(LiteralValue* value)
   : Expr()
   , value{ value }
 {

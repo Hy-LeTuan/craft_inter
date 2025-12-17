@@ -1,24 +1,23 @@
 #pragma once
 
 #include <expr.hpp>
-#include <any>
-
+#include <object.hpp>
 
 class Interpreter : public Visitor
 {
   public:
-    std::any visitBinaryExpr(const Binary* expr) override;
-    std::any visitGroupingExpr(const Grouping* expr) override;
-    std::any visitLiteralExpr(const Literal* expr) override;
-    std::any visitUnaryExpr(const Unary* expr) override;
+    Object visitBinaryExpr(const Binary* expr) override;
+    Object visitGroupingExpr(const Grouping* expr) override;
+    Object visitLiteralExpr(const Literal* expr) override;
+    Object visitUnaryExpr(const Unary* expr) override;
 
     void interpret(Expr* expression);
 
   private:
-    std::any evaluate(const Expr* expr);
-    bool isTruthy(std::any& right);
-    bool isEqual(std::any& left, std::any& right);
-    void checkNumberOperand(const Token* op, std::any& operand);
-    void checkNumberOperands(const Token* op, std::any& left, std::any& right);
-    std::string stringify(std::any object);
+    Object evaluate(const Expr* expr);
+    bool isTruthy(Object& right);
+    bool isEqual(Object& left, Object& right);
+    void checkNumberOperand(const Token* op, Object& operand);
+    void checkNumberOperands(const Token* op, Object& left, Object& right);
+    std::string stringify(Object object);
 };

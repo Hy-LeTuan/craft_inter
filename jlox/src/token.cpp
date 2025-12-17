@@ -10,7 +10,7 @@ int Token::getLine() const
     return line;
 }
 
-Token::Token(TokenType type, std::string lexeme, Object literal, int line)
+Token::Token(TokenType type, std::string lexeme, LiteralValue literal, int line)
   : type{ type }
   , lexeme{ lexeme }
   , literal{ std::move(literal) }
@@ -23,9 +23,9 @@ std::string Token::getLexeme() const
     return this->lexeme;
 }
 
-Object* Token::getLiteral() const
+LiteralValue* Token::getLiteral() const
 {
-    return new Object{ literal };
+    return new LiteralValue{ literal };
 }
 
 std::string Token::toString() const
@@ -41,9 +41,9 @@ std::string Token::toString() const
     return name;
 }
 
-std::string Token::displayLiteral(Object literal)
+std::string Token::displayLiteral(LiteralValue literal)
 {
-    return std::visit(ObjectValueVisitor{}, literal);
+    return std::visit(LiteralValueVisitor{}, literal);
 }
 
 std::string Token::displayType(TokenType type)

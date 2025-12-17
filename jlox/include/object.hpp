@@ -1,30 +1,34 @@
 #pragma once
 
-#include <variant>
+#include <any>
 #include <string>
 
-using Object = std::variant<std::monostate, double, std::string, bool>;
+using Object = std::any;
 
-class ObjectValueVisitor
+#define ObjectGetDouble(val) std::any_cast<double>(val)
+#define ObjectGetBool(val) std::any_cast<bool>(val)
+#define ObjectGetString(val) std::any_cast<std::string>(val)
+
+class ObjectParser
 {
   public:
-    std::string operator()(const std::monostate&)
+    static bool isDouble(Object& val)
     {
-        return "Nil";
+        return val.type() == typeid(double);
     }
 
-    std::string operator()(double d)
+    static bool isBool(Object& val)
     {
-        return std::to_string(d);
+        return val.type() == typeid(bool);
     }
 
-    std::string operator()(const std::string& s)
+    static bool isString(Object& val)
     {
-        return std::string{ s.begin(), s.end() };
+        return val.type() == typeid(std::string);
     }
 
-    std::string operator()(bool b)
+    static bool isNull(Object& val)
     {
-        return b ? "True" : "False";
+        return val.type() == typeid(nullptr);
     }
 };

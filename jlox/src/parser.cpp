@@ -107,15 +107,15 @@ Expr* Parser::primary()
 {
     if (match(TokenType::FALSE))
     {
-        return new Literal(new Object{ false });
+        return new Literal(new LiteralValue{ false });
     }
     else if (match(TokenType::TRUE))
     {
-        return new Literal(new Object{ true });
+        return new Literal(new LiteralValue{ true });
     }
     else if (match(TokenType::NIL))
     {
-        return new Literal(new Object{});
+        return new Literal(new LiteralValue{});
     }
     else if (match(TokenType::NUMBER, TokenType::STRING))
     {
