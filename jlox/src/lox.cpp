@@ -25,7 +25,7 @@ void Lox::run(std::string source)
     auto tokens = scanner.scanTokens();
 
     Parser parser{ std::move(tokens) };
-    Expr* expr = parser.parse();
+    expr::Expr* expr = parser.parse();
 
     if (HAD_ERROR)
     {

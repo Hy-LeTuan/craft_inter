@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-Expr* Parser::parse()
+expr::Expr* Parser::parse()
 {
     try
     {
@@ -18,9 +18,9 @@ Expr* Parser::parse()
     }
 }
 
-Expr* Parser::expression()
+expr::Expr* Parser::expression()
 {
-    Expr* expr = equality();
+    expr::Expr* expr = equality();
 
     while (match(TokenType::COMMA))
     {
@@ -30,104 +30,104 @@ Expr* Parser::expression()
     return expr;
 }
 
-Expr* Parser::equality()
+expr::Expr* Parser::equality()
 {
-    Expr* expr = comparison();
+    expr::Expr* expr = comparison();
 
     while (match(TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL))
     {
         Token* op = previous();
-        Expr* right = comparison();
-        expr = new Binary(expr, op, right);
+        expr::Expr* right = comparison();
+        expr = new expr::Binary(expr, op, right);
     }
 
     return expr;
 }
 
-Expr* Parser::comparison()
+expr::Expr* Parser::comparison()
 {
-    Expr* expr = term();
+    expr::Expr* expr = term();
 
     while (
       match(TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL))
     {
         Token* op = previous();
-        Expr* right = term();
+        expr::Expr* right = term();
 
-        expr = new Binary(expr, op, right);
+        expr = new expr::Binary(expr, op, right);
     }
 
     return expr;
 }
 
-Expr* Parser::term()
+expr::Expr* Parser::term()
 {
-    Expr* expr = factor();
+    expr::Expr* expr = factor();
 
     while (match(TokenType::PLUS, TokenType::MINUS))
     {
         Token* op = previous();
-        Expr* right = term();
+        expr::Expr* right = term();
 
-        expr = new Binary(expr, op, right);
+        expr = new expr::Binary(expr, op, right);
     }
 
     return expr;
 }
 
-Expr* Parser::factor()
+expr::Expr* Parser::factor()
 {
-    Expr* expr = unary();
+    expr::Expr* expr = unary();
 
     while (match(TokenType::SLASH, TokenType::STAR))
     {
         Token* op = previous();
-        Expr* right = unary();
+        expr::Expr* right = unary();
 
-        expr = new Binary(expr, op, right);
+        expr = new expr::Binary(expr, op, right);
     }
 
     return expr;
 }
 
-Expr* Parser::unary()
+expr::Expr* Parser::unary()
 {
     if (match(TokenType::BANG, TokenType::MINUS))
     {
         Token* op = previous();
-        Expr* right = unary();
+        expr::Expr* right = unary();
 
-        return new Unary(op, right);
+        return new expr::Unary(op, right);
     }
 
     return primary();
 }
 
-Expr* Parser::primary()
+expr::Expr* Parser::primary()
 {
     if (match(TokenType::FALSE))
     {
-        return new Literal(new LiteralValue{ false });
+        return new expr::Literal(new LiteralValue{ false });
     }
     else if (match(TokenType::TRUE))
     {
-        return new Literal(new LiteralValue{ true });
+        return new expr::Literal(new LiteralValue{ true });
     }
     else if (match(TokenType::NIL))
     {
-        return new Literal(new LiteralValue{});
+        return new expr::Literal(new LiteralValue{});
     }
     else if (match(TokenType::NUMBER, TokenType::STRING))
     {
-        return new Literal(previous()->getLiteral());
+        return new expr::Literal(previous()->getLiteral());
     }
     else if (match(TokenType::LEFT_PAREN))
     {
-        Expr* expr = expression();
+        expr::Expr* expr = expression();
 
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
 
-        return new Grouping(expr);
+        return new expr::Grouping(expr);
     }
     else
     {

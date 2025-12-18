@@ -6,15 +6,15 @@
 #include <any>
 #include <iostream>
 
-class AstPrinter : public Visitor
+class AstPrinter : public expr::Visitor
 {
   public:
-    std::any visitBinaryExpr(const Binary* expr)override;
-    std::any visitGroupingExpr(const Grouping* expr) override;
-    std::any visitLiteralExpr(const Literal* expr) override;
-    std::any visitUnaryExpr(const Unary* expr) override;
+    std::any visitBinaryExpr(const expr::Binary* expr) override;
+    std::any visitGroupingExpr(const expr::Grouping* expr) override;
+    std::any visitLiteralExpr(const expr::Literal* expr) override;
+    std::any visitUnaryExpr(const expr::Unary* expr) override;
 
-    std::string print(Expr* expr);
+    std::string print(expr::Expr* expr);
 
   private:
     template<typename... Args>

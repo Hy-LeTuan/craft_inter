@@ -37,14 +37,14 @@ def declareType(file: TextIOWrapper, baseName: str, className: str, fields: str)
 
 def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
     _ = file.write(f"{className}::{className}({fields})\n")
-    _ = file.write(f": Expr()\n")
 
-    for field in fields.split(", "):
+    for i, field in enumerate(fields.split(", ")):
         [fieldType, fieldName] = field.split()
         fieldType = fieldType[:len(fieldType) - 2]
 
+        delimiter = ":" if i == 0 else ","
         _ = file.write(
-            f"  , {fieldName}{{ {fieldName} }}\n")
+            f"  {delimiter} {fieldName}{{ {fieldName} }}\n")
 
     _ = file.write("{\n")
     _ = file.write("}\n")
@@ -55,7 +55,10 @@ def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
     _ = file.write(f"{{\n")
     for field in fields.split(", "):
         fieldName = field.split()[1]
+        _ = file.write(f"if ({fieldName})\n")
+        _ = file.write(f"{{\n")
         _ = file.write(f"delete {fieldName};\n")
+        _ = file.write(f"}}\n")
     _ = file.write(f"}}\n")
 
     _ = file.write("\n")
@@ -76,8 +79,13 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write("#pragma once\n")
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <token.hpp>\n")
+    _ = headerFile.write("\n")
     _ = headerFile.write("#include <any>\n")
     _ = headerFile.write("\n")
+
+    # open namespace
+    _ = headerFile.write(f"namespace {baseName.lower()}\n")
+    _ = headerFile.write("{\n")
 
     _ = headerFile.write(f"class Visitor;\n")
     _ = headerFile.write(f"\n")
@@ -85,24 +93,29 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write(f"class {baseName}\n")
     _ = headerFile.write("{\n")
     _ = headerFile.write("public:\n")
-    _ = headerFile.write("Expr() = default;\n")
-    _ = headerFile.write("virtual ~Expr() = 0;\n")
+    _ = headerFile.write(f"{baseName}() = default;\n")
+    _ = headerFile.write(f"virtual ~{baseName}() = 0;\n")
     _ = headerFile.write("\n")
 
-    _ = headerFile.write("Expr(const Expr&) = delete;\n")
-    _ = headerFile.write("Expr& operator=(const Expr&) = delete;\n")
-    _ = headerFile.write("Expr(Expr&&) = delete;\n")
-    _ = headerFile.write("Expr& operator=(Expr&&) = delete;\n")
+    _ = headerFile.write(f"{baseName}(const {baseName}&) = delete;\n")
+    _ = headerFile.write(
+        f"{baseName}& operator=(const {baseName}&) = delete;\n")
+    _ = headerFile.write(f"{baseName}({baseName}&&) = delete;\n")
+    _ = headerFile.write(f"{baseName}& operator=({baseName}&&) = delete;\n")
     _ = headerFile.write("\n")
 
     _ = headerFile.write("virtual std::any accept(Visitor* visitor) = 0;\n")
     _ = headerFile.write("};\n")
     _ = headerFile.write("\n")
 
-    _ = srcFile.write("#include <any>\n")
-    _ = srcFile.write("#include <expr.hpp>\n")
+    _ = srcFile.write(f"#include <{baseName.lower()}.hpp>\n")
     _ = srcFile.write("#include <token.hpp>\n")
     _ = srcFile.write("\n")
+    _ = srcFile.write("#include <any>\n")
+    _ = srcFile.write("\n")
+
+    _ = srcFile.write(f"namespace {baseName.lower()}\n")
+    _ = srcFile.write("{\n")
 
     for type in types:
         [className, fields] = type.split(":")
@@ -120,6 +133,10 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
 
     declareVisitor(headerFile, baseName, types)
 
+    # close namespace
+    _ = headerFile.write("}\n")
+    _ = srcFile.write("}\n")
+
     headerFile.close()
     srcFile.close()
 
@@ -131,11 +148,16 @@ def main():
 
     outputDir: str = sys.argv[1]
 
-    defineAst(outputDir, "Expr", [
-        "Binary   : Expr* left, Token* op, Expr* right",
-        "Grouping : Expr* expression",
-        "Literal  : LiteralValue* value",
-        "Unary    : Token* op, Expr* right"
+    # defineAst(outputDir, "Expr", [
+    #     "Binary   : Expr* left, Token* op, Expr* right",
+    #     "Grouping : Expr* expression",
+    #     "Literal  : LiteralValue* value",
+    #     "Unary    : Token* op, Expr* right"
+    # ])
+
+    defineAst(outputDir, "Stmt", [
+        "Expression : Expr* expression",
+        "Print      : Expr* expression"
     ])
 
 

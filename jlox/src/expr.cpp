@@ -2,13 +2,14 @@
 #include <expr.hpp>
 #include <token.hpp>
 
+namespace expr
+{
 Expr::~Expr()
 {
 }
 
 Binary::Binary(Expr* left, Token* op, Expr* right)
-  : Expr()
-  , left{ left }
+  : left{ left }
   , op{ op }
   , right{ right }
 {
@@ -27,8 +28,7 @@ std::any Binary::accept(Visitor* visitor) const
 }
 
 Grouping::Grouping(Expr* expression)
-  : Expr()
-  , expression{ expression }
+  : expression{ expression }
 {
 }
 
@@ -43,8 +43,7 @@ std::any Grouping::accept(Visitor* visitor) const
 }
 
 Literal::Literal(LiteralValue* value)
-  : Expr()
-  , value{ value }
+  : value{ value }
 {
 }
 
@@ -59,8 +58,7 @@ std::any Literal::accept(Visitor* visitor) const
 }
 
 Unary::Unary(Token* op, Expr* right)
-  : Expr()
-  , op{ op }
+  : op{ op }
   , right{ right }
 {
 }
@@ -75,3 +73,4 @@ std::any Unary::accept(Visitor* visitor) const
 {
     return visitor->visitUnaryExpr(this);
 }
+};

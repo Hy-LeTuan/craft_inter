@@ -1,11 +1,11 @@
 #include "object.hpp"
 #include <runtime_error.hpp>
 #include <interpreter.hpp>
-#include <iostream>
 #include <token_type.hpp>
 #include <lox.hpp>
+#include <iostream>
 
-Object Interpreter::visitLiteralExpr(const Literal* expr)
+Object Interpreter::visitLiteralExpr(const expr::Literal* expr)
 {
     if (expr->value->index() == 0)
     {
@@ -32,12 +32,12 @@ Object Interpreter::visitLiteralExpr(const Literal* expr)
     }
 }
 
-Object Interpreter::visitGroupingExpr(const Grouping* expr)
+Object Interpreter::visitGroupingExpr(const expr::Grouping* expr)
 {
     return evaluate(expr->expression);
 }
 
-Object Interpreter::visitUnaryExpr(const Unary* expr)
+Object Interpreter::visitUnaryExpr(const expr::Unary* expr)
 {
     Object right = evaluate(expr->right);
 
@@ -53,7 +53,7 @@ Object Interpreter::visitUnaryExpr(const Unary* expr)
     }
 }
 
-Object Interpreter::visitBinaryExpr(const Binary* expr)
+Object Interpreter::visitBinaryExpr(const expr::Binary* expr)
 {
     Object left = evaluate(expr->left);
     Object right = evaluate(expr->right);
@@ -112,7 +112,7 @@ Object Interpreter::visitBinaryExpr(const Binary* expr)
     return nullptr;
 }
 
-Object Interpreter::evaluate(const Expr* expr)
+Object Interpreter::evaluate(const expr::Expr* expr)
 {
     return expr->accept(this);
 }
@@ -204,7 +204,7 @@ void Interpreter::checkNumberOperands(const Token* op, Object& left, Object& rig
     throw RuntimeError(op, "Operands must be numbers.");
 }
 
-void Interpreter::interpret(Expr* expression)
+void Interpreter::interpret(expr::Expr* expression)
 {
     try
     {

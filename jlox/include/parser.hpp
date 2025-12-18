@@ -18,19 +18,19 @@ class Parser
     {
     }
 
-    Expr* parse();
+    expr::Expr* parse();
 
   private:
     int current = 0;
     std::vector<Token*> tokens;
 
-    Expr* expression();
-    Expr* equality();
-    Expr* comparison();
-    Expr* term();
-    Expr* factor();
-    Expr* unary();
-    Expr* primary();
+    expr::Expr* expression();
+    expr::Expr* equality();
+    expr::Expr* comparison();
+    expr::Expr* term();
+    expr::Expr* factor();
+    expr::Expr* unary();
+    expr::Expr* primary();
 
     template<typename... T>
     bool match(T... types)

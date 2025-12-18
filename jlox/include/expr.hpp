@@ -3,6 +3,8 @@
 #include <token.hpp>
 #include <any>
 
+namespace expr
+{
 class Visitor;
 
 class Expr
@@ -74,3 +76,4 @@ class Visitor
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;
     virtual std::any visitUnaryExpr(const Unary* expr) = 0;
 };
+}
