@@ -61,29 +61,34 @@ Object Interpreter::visitBinaryExpr(const Binary* expr)
     switch (expr->op->getType())
     {
         case TokenType::GREATER:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) > ObjectGetDouble(right);
         case TokenType::GREATER_EQUAL:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) >= ObjectGetDouble(right);
         case TokenType::LESS:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) < ObjectGetDouble(right);
         case TokenType::LESS_EQUAL:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) <= ObjectGetDouble(right);
         case TokenType::BANG_EQUAL:
             return !isEqual(left, right);
         case TokenType::EQUAL_EQUAL:
             return isEqual(left, right);
         case TokenType::MINUS:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) - ObjectGetDouble(right);
         case TokenType::SLASH:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
+            if (ObjectGetDouble(right) == 0.)
+            {
+                throw RuntimeError(expr->op, "Divide by zero error.");
+            }
+
             return ObjectGetDouble(left) / ObjectGetDouble(right);
         case TokenType::STAR:
-            checkNumberOperand(expr->op, right);
+            checkNumberOperands(expr->op, left, right);
             return ObjectGetDouble(left) * ObjectGetDouble(right);
         case TokenType::PLUS:
             if (ObjectParser::isDouble(left) && ObjectParser::isDouble(right))
@@ -93,6 +98,10 @@ Object Interpreter::visitBinaryExpr(const Binary* expr)
             else if (ObjectParser::isString(left) && ObjectParser::isString(right))
             {
                 return ObjectGetString(left) + ObjectGetString(right);
+            }
+            else if (ObjectParser::isString(left) && ObjectParser::isDouble(right))
+            {
+                return ObjectGetString(left) + std::to_string(ObjectGetDouble(right));
             }
 
             throw RuntimeError(expr->op, "Operands must be two numbers or two strings.");
@@ -185,7 +194,7 @@ void Interpreter::checkNumberOperand(const Token* op, Object& operand)
     throw RuntimeError(op, "Operand must be a number.");
 }
 
-void checkNumberOperands(const Token* op, Object& left, Object& right)
+void Interpreter::checkNumberOperands(const Token* op, Object& left, Object& right)
 {
     if (ObjectParser::isDouble(left) && ObjectParser::isDouble(right))
     {
