@@ -50,7 +50,7 @@ class Print : public Stmt
 class Visitor
 {
   public:
-    virtual std::any visitExpressionStmt(Expression* stmt) = 0;
-    virtual std::any visitPrintStmt(Print* stmt) = 0;
+    virtual std::any visitExpressionStmt(const Expression* stmt) = 0;
+    virtual std::any visitPrintStmt(const Print* stmt) = 0;
 };
 }

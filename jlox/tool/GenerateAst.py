@@ -14,7 +14,7 @@ def declareVisitor(file: TextIOWrapper, baseName: str, types: list[str]):
         fields = fields.strip()
 
         _ = file.write(
-            f"virtual std::any visit{typeName + baseName}({typeName}* {baseName.lower()}) = 0;\n")
+            f"virtual std::any visit{typeName + baseName}(const {typeName}* {baseName.lower()}) = 0;\n")
 
     _ = file.write(f"}};\n")
 
@@ -116,6 +116,12 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
 
     _ = srcFile.write(f"namespace {baseName.lower()}\n")
     _ = srcFile.write("{\n")
+    _ = srcFile.write("\n")
+
+    _ = srcFile.write(f"{baseName}::~{baseName}()\n")
+    _ = srcFile.write(f"{{\n")
+    _ = srcFile.write(f"}}\n")
+    _ = srcFile.write(f"\n")
 
     for type in types:
         [className, fields] = type.split(":")

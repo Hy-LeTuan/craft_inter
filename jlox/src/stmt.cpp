@@ -2,9 +2,15 @@
 #include <token.hpp>
 
 #include <any>
+#include <iostream>
 
 namespace stmt
 {
+
+Stmt::~Stmt()
+{
+}
+
 Expression::Expression(Expr* expression)
   : expression{ expression }
 {
@@ -16,6 +22,7 @@ Expression::~Expression()
     {
         delete expression;
     }
+    std::cout << "destructor for expression statement called" << std::endl;
 }
 
 std::any Expression::accept(Visitor* visitor)

@@ -25,15 +25,24 @@ void Lox::run(std::string source)
     auto tokens = scanner.scanTokens();
 
     Parser parser{ std::move(tokens) };
-    expr::Expr* expr = parser.parse();
+    std::vector<stmt::Stmt*> statements = parser.parse();
 
     if (HAD_ERROR)
     {
         return;
     }
 
-    std::cout << AstPrinter{}.print(expr) << std::endl;
-    Lox::interpreter.interpret(expr);
+    // std::cout << AstPrinter{}.print(expr) << std::endl;
+    Lox::interpreter.interpret(statements);
+
+    // top down clean up of statements
+    for (auto statement : statements)
+    {
+        if (statement)
+        {
+            delete statement;
+        }
+    }
 }
 
 void Lox::runPrompt()

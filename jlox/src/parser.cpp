@@ -4,18 +4,60 @@
 #include <token.hpp>
 #include <token_type.hpp>
 
-#include <iostream>
-
-expr::Expr* Parser::parse()
+Parser::Parser(std::vector<Token*> tokens)
+  : tokens{ std::move(tokens) }
 {
-    try
+}
+
+Parser::~Parser()
+{
+    if (!tokens.empty())
     {
-        return expression();
+        // free eof token
+        delete tokens[tokens.size() - 1];
     }
-    catch (ParseError)
+}
+
+std::vector<stmt::Stmt*> Parser::parse()
+{
+    std::vector<stmt::Stmt*> statements;
+
+    while (!isAtEnd())
     {
-        return nullptr;
+        statements.push_back(statement());
     }
+
+    return statements;
+}
+
+stmt::Stmt* Parser::statement()
+{
+    if (match(TokenType::PRINT))
+    {
+        // this also needs to be here for the same reason as in the function `primary()`
+        // read it for full explaination
+        freeUnownedToken();
+
+        return printStatement();
+    }
+
+    return expressionStatement();
+}
+
+stmt::Stmt* Parser::printStatement()
+{
+    Expr* value = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after value.");
+
+    return new stmt::Print{ value };
+}
+
+stmt::Stmt* Parser::expressionStatement()
+{
+    Expr* value = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+
+    return new stmt::Expression{ value };
 }
 
 expr::Expr* Parser::expression()
@@ -105,36 +147,49 @@ expr::Expr* Parser::unary()
 
 expr::Expr* Parser::primary()
 {
-    if (match(TokenType::FALSE))
-    {
-        return new expr::Literal(new LiteralValue{ false });
-    }
-    else if (match(TokenType::TRUE))
-    {
-        return new expr::Literal(new LiteralValue{ true });
-    }
-    else if (match(TokenType::NIL))
-    {
-        return new expr::Literal(new LiteralValue{});
-    }
-    else if (match(TokenType::NUMBER, TokenType::STRING))
-    {
-        return new expr::Literal(previous()->getLiteral());
-    }
-    else if (match(TokenType::LEFT_PAREN))
+
+    if (match(TokenType::LEFT_PAREN))
     {
         expr::Expr* expr = expression();
-
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
 
         return new expr::Grouping(expr);
     }
     else
     {
-        throw error(peek(), "Expect expression.");
-    }
+        Expr* literalExpression = nullptr;
 
-    std::cout << "expression called with current: " << peek() << std::endl;
+        if (match(TokenType::FALSE))
+        {
+            literalExpression = new expr::Literal(new LiteralValue{ false });
+        }
+        else if (match(TokenType::TRUE))
+        {
+            literalExpression = new expr::Literal(new LiteralValue{ true });
+        }
+        else if (match(TokenType::NIL))
+        {
+            literalExpression = new expr::Literal(new LiteralValue{});
+        }
+        else if (match(TokenType::NUMBER, TokenType::STRING))
+        {
+            literalExpression = new expr::Literal(previous()->getLiteral());
+        }
+
+        // only free tokens that contain literals.
+        // this shouldn't even exist because this token should be moved
+        // into the expr::Literal class to comply with RAII like any other
+        // tokens, but for the sake of closely following the syntax of the book,
+        // I manually free it here instead.
+        freeUnownedToken();
+
+        if (!literalExpression)
+        {
+            throw error(peek(), "Expect expression.");
+        }
+
+        return literalExpression;
+    }
 }
 
 bool Parser::check(TokenType type)
@@ -178,7 +233,10 @@ Token* Parser::consume(TokenType type, std::string message)
 {
     if (check(type))
     {
-        return advance();
+        auto e = advance();
+        freeUnownedToken();
+
+        return e;
     }
 
     throw error(peek(), message);
@@ -216,4 +274,9 @@ void Parser::synchronize()
                 advance();
         }
     }
+}
+
+void Parser::freeUnownedToken()
+{
+    delete previous();
 }

@@ -5,6 +5,20 @@
 #include <lox.hpp>
 #include <iostream>
 
+Object Interpreter::visitExpressionStmt(const stmt::Expression* stmt)
+{
+    evaluate(stmt->expression);
+    return nullptr;
+}
+
+Object Interpreter::visitPrintStmt(const stmt::Print* stmt)
+{
+    Object value = evaluate(stmt->expression);
+    std::cout << stringify(value) << std::endl;
+
+    return nullptr;
+}
+
 Object Interpreter::visitLiteralExpr(const expr::Literal* expr)
 {
     if (expr->value->index() == 0)
@@ -22,7 +36,7 @@ Object Interpreter::visitLiteralExpr(const expr::Literal* expr)
         return std::get<std::string>(*expr->value);
     }
     // bool
-    else if (expr->value->index() == 2)
+    else if (expr->value->index() == 3)
     {
         return std::get<bool>(*expr->value);
     }
@@ -161,24 +175,24 @@ bool Interpreter::isEqual(Object& left, Object& right)
     return false;
 }
 
-std::string Interpreter::stringify(Object object)
+std::string Interpreter::stringify(Object& object)
 {
-    if (object.type() == typeid(nullptr))
+    if (ObjectParser::isNull(object))
     {
         return "nil";
     }
-    else if (object.type() == typeid(double))
+    else if (ObjectParser::isDouble(object))
     {
-        return std::to_string(std::any_cast<double>(object));
+        return std::to_string(ObjectGetDouble(object));
     }
-    else if (object.type() == typeid(bool))
+    else if (ObjectParser::isBool(object))
     {
-        bool b = std::any_cast<bool>(object);
+        bool b = ObjectGetBool(object);
         return b ? "true" : "false";
     }
-    else if (object.type() == typeid(std::string))
+    else if (ObjectParser::isString(object))
     {
-        return std::any_cast<std::string>(object);
+        return ObjectGetString(object);
     }
 
     return "";
@@ -204,15 +218,22 @@ void Interpreter::checkNumberOperands(const Token* op, Object& left, Object& rig
     throw RuntimeError(op, "Operands must be numbers.");
 }
 
-void Interpreter::interpret(expr::Expr* expression)
+void Interpreter::interpret(std::vector<stmt::Stmt*> statements)
 {
     try
     {
-        Object value = evaluate(expression);
-        std::cout << stringify(value) << std::endl;
+        for (auto statement : statements)
+        {
+            execute(statement);
+        }
     }
     catch (RuntimeError error)
     {
         Lox::runtimeError(error);
     }
+}
+
+void Interpreter::execute(stmt::Stmt* statement)
+{
+    statement->accept(this);
 }

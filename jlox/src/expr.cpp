@@ -17,9 +17,20 @@ Binary::Binary(Expr* left, Token* op, Expr* right)
 
 Binary::~Binary()
 {
-    delete left;
-    delete op;
-    delete right;
+    if (left)
+    {
+        delete left;
+    }
+
+    if (op)
+    {
+        delete op;
+    }
+
+    if (right)
+    {
+        delete right;
+    }
 }
 
 std::any Binary::accept(Visitor* visitor) const
@@ -34,7 +45,10 @@ Grouping::Grouping(Expr* expression)
 
 Grouping::~Grouping()
 {
-    delete expression;
+    if (expression)
+    {
+        delete expression;
+    }
 }
 
 std::any Grouping::accept(Visitor* visitor) const
@@ -49,7 +63,10 @@ Literal::Literal(LiteralValue* value)
 
 Literal::~Literal()
 {
-    delete value;
+    if (value)
+    {
+        delete value;
+    }
 }
 
 std::any Literal::accept(Visitor* visitor) const
@@ -65,8 +82,15 @@ Unary::Unary(Token* op, Expr* right)
 
 Unary::~Unary()
 {
-    delete op;
-    delete right;
+    if (op)
+    {
+        delete op;
+    }
+
+    if (right)
+    {
+        delete right;
+    }
 }
 
 std::any Unary::accept(Visitor* visitor) const

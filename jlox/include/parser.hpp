@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stmt.hpp>
 #include <exception>
 #include <token.hpp>
 #include <expr.hpp>
@@ -13,16 +14,18 @@ class ParseError : public std::exception
 class Parser
 {
   public:
-    Parser(std::vector<Token*> tokens)
-      : tokens{ std::move(tokens) }
-    {
-    }
+    Parser(std::vector<Token*> tokens);
+    ~Parser();
 
-    expr::Expr* parse();
+    std::vector<stmt::Stmt*> parse();
 
   private:
     int current = 0;
     std::vector<Token*> tokens;
+
+    stmt::Stmt* statement();
+    stmt::Stmt* printStatement();
+    stmt::Stmt* expressionStatement();
 
     expr::Expr* expression();
     expr::Expr* equality();
@@ -49,6 +52,7 @@ class Parser
 
     bool check(TokenType type);
     bool isAtEnd();
+    void freeUnownedToken();
     Token* peek();
     Token* previous();
     Token* advance();

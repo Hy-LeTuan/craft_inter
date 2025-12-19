@@ -16,7 +16,8 @@ set(CLOX_SOURCES
     src/ast_printer.cpp;
     src/parser.cpp;
     src/interpreter.cpp;
-    src/runtime_error.cpp
+    src/runtime_error.cpp;
+    src/stmt.cpp;
 )
 
 add_executable(${PROJECT_NAME} ${CLOX_SOURCES})
