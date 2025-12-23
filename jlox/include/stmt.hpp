@@ -22,7 +22,7 @@ class Stmt
     Stmt(Stmt&&) = delete;
     Stmt& operator=(Stmt&&) = delete;
 
-    virtual std::any accept(Visitor* visitor) = 0;
+    virtual std::any accept(Visitor* visitor) const = 0;
 };
 
 class Expression : public Stmt
@@ -31,7 +31,7 @@ class Expression : public Stmt
     Expression(Expr* expression);
     ~Expression() override;
 
-    std::any accept(Visitor* visitor) override;
+    std::any accept(Visitor* visitor) const override;
 
     const Expr* expression;
 };
@@ -42,9 +42,21 @@ class Print : public Stmt
     Print(Expr* expression);
     ~Print() override;
 
-    std::any accept(Visitor* visitor) override;
+    std::any accept(Visitor* visitor) const override;
 
     const Expr* expression;
+};
+
+class Var : public Stmt
+{
+  public:
+    Var(Token* name, Expr* initializer);
+    ~Var() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* name;
+    const Expr* initializer;
 };
 
 class Visitor
@@ -52,5 +64,6 @@ class Visitor
   public:
     virtual std::any visitExpressionStmt(const Expression* stmt) = 0;
     virtual std::any visitPrintStmt(const Print* stmt) = 0;
+    virtual std::any visitVarStmt(const Var* stmt) = 0;
 };
 }

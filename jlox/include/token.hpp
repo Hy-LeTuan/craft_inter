@@ -8,7 +8,12 @@ class Token
 {
   public:
     explicit Token(TokenType type, std::string lexeme, LiteralValue literal, int line);
+
+#if TOKEN_DEBUG
+    ~Token();
+#else
     ~Token() = default;
+#endif
 
     std::string toString() const;
     std::string getLexeme() const;

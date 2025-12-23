@@ -2,7 +2,6 @@
 #include <token.hpp>
 
 #include <any>
-#include <iostream>
 
 namespace stmt
 {
@@ -22,10 +21,9 @@ Expression::~Expression()
     {
         delete expression;
     }
-    std::cout << "destructor for expression statement called" << std::endl;
 }
 
-std::any Expression::accept(Visitor* visitor)
+std::any Expression::accept(Visitor* visitor) const
 {
     return visitor->visitExpressionStmt(this);
 }
@@ -43,9 +41,32 @@ Print::~Print()
     }
 }
 
-std::any Print::accept(Visitor* visitor)
+std::any Print::accept(Visitor* visitor) const
 {
     return visitor->visitPrintStmt(this);
+}
+
+Var::Var(Token* name, Expr* initializer)
+  : name{ name }
+  , initializer{ initializer }
+{
+}
+
+Var::~Var()
+{
+    if (name)
+    {
+        delete name;
+    }
+    if (initializer)
+    {
+        delete initializer;
+    }
+}
+
+std::any Var::accept(Visitor* visitor) const
+{
+    return visitor->visitVarStmt(this);
 }
 
 }

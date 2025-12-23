@@ -19,6 +19,32 @@ Object Interpreter::visitPrintStmt(const stmt::Print* stmt)
     return nullptr;
 }
 
+Object Interpreter::visitVarStmt(const stmt::Var* stmt)
+{
+    Object value = nullptr;
+
+    if (stmt->initializer != nullptr)
+    {
+        value = evaluate(stmt->initializer);
+    }
+
+    environment.define(stmt->name->getLexeme(), value);
+    return nullptr;
+}
+
+Object Interpreter::visitVariableExpr(const expr::Variable* expr)
+{
+    return environment.get(expr->name);
+}
+
+Object Interpreter::visitAssignExpr(const expr::Assign* expr)
+{
+    Object value = evaluate(expr->value);
+    environment.assign(expr->name, value);
+
+    return value;
+}
+
 Object Interpreter::visitLiteralExpr(const expr::Literal* expr)
 {
     if (expr->value->index() == 0)

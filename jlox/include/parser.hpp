@@ -23,11 +23,14 @@ class Parser
     int current = 0;
     std::vector<Token*> tokens;
 
+    stmt::Stmt* declaration();
+    stmt::Stmt* varDeclaration();
     stmt::Stmt* statement();
     stmt::Stmt* printStatement();
     stmt::Stmt* expressionStatement();
 
     expr::Expr* expression();
+    expr::Expr* assignment();
     expr::Expr* equality();
     expr::Expr* comparison();
     expr::Expr* term();

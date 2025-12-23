@@ -26,7 +26,7 @@ def declareType(file: TextIOWrapper, baseName: str, className: str, fields: str)
     _ = file.write(f"{className}({fields});\n")
     _ = file.write(f"~{className}() override;\n")
     _ = file.write(f"\n")
-    _ = file.write(f"std::any accept(Visitor* visitor) override;\n")
+    _ = file.write(f"std::any accept(Visitor* visitor) const override;\n")
     _ = file.write("\n")
     for field in fields.split(", "):
         _ = file.write(f"const {field};\n")
@@ -63,7 +63,7 @@ def defineType(file: TextIOWrapper, baseName: str, className: str, fields: str):
 
     _ = file.write("\n")
 
-    _ = file.write(f"std::any {className}::accept(Visitor* visitor)\n")
+    _ = file.write(f"std::any {className}::accept(Visitor* visitor) const\n")
     _ = file.write(f"{{\n")
     _ = file.write(f"return visitor->visit{className + baseName}(this);\n")
     _ = file.write(f"}}\n")
@@ -79,9 +79,17 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write("#pragma once\n")
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <token.hpp>\n")
+
+    if baseName.lower() != "expr":
+        _ = headerFile.write("#include <expr.hpp>\n")
+
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <any>\n")
     _ = headerFile.write("\n")
+
+    if baseName.lower() != "expr":
+        _ = headerFile.write("using expr::Expr;\n")
+        _ = headerFile.write("\n")
 
     # open namespace
     _ = headerFile.write(f"namespace {baseName.lower()}\n")
@@ -104,7 +112,8 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write(f"{baseName}& operator=({baseName}&&) = delete;\n")
     _ = headerFile.write("\n")
 
-    _ = headerFile.write("virtual std::any accept(Visitor* visitor) = 0;\n")
+    _ = headerFile.write(
+        "virtual std::any accept(Visitor* visitor) const = 0;\n")
     _ = headerFile.write("};\n")
     _ = headerFile.write("\n")
 
@@ -154,17 +163,20 @@ def main():
 
     outputDir: str = sys.argv[1]
 
-    # defineAst(outputDir, "Expr", [
-    #     "Binary   : Expr* left, Token* op, Expr* right",
-    #     "Grouping : Expr* expression",
-    #     "Literal  : LiteralValue* value",
-    #     "Unary    : Token* op, Expr* right"
-    # ])
-
-    defineAst(outputDir, "Stmt", [
-        "Expression : Expr* expression",
-        "Print      : Expr* expression"
+    defineAst(outputDir, "Expr", [
+        "Binary   : Expr* left, Token* op, Expr* right",
+        "Assign: Token* name, Expr* value",
+        "Grouping : Expr* expression",
+        "Literal  : LiteralValue* value",
+        "Unary    : Token* op, Expr* right",
+        "Variable : Token* name"
     ])
+
+    # defineAst(outputDir, "Stmt", [
+    #     "Expression : Expr* expression",
+    #     "Print      : Expr* expression",
+    #     "Var        : Token* name, Expr* initializer"
+    # ])
 
 
 if __name__ == "__main__":

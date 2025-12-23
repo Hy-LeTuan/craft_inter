@@ -18,8 +18,12 @@ set(CLOX_SOURCES
     src/interpreter.cpp;
     src/runtime_error.cpp;
     src/stmt.cpp;
+    src/environment.cpp
 )
 
+option(TOKEN_DEBUG "Enable token debugging destructor" 0)
+
 add_executable(${PROJECT_NAME} ${CLOX_SOURCES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE TOKEN_DEBUG=${TOKEN_DEBUG})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

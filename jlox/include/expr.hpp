@@ -1,6 +1,7 @@
 #pragma once
 
 #include <token.hpp>
+
 #include <any>
 
 namespace expr
@@ -32,6 +33,18 @@ class Binary : public Expr
     const Expr* left;
     const Token* op;
     const Expr* right;
+};
+
+class Assign : public Expr
+{
+  public:
+    Assign(Token* name, Expr* value);
+    ~Assign() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* name;
+    const Expr* value;
 };
 
 class Grouping : public Expr
@@ -68,12 +81,25 @@ class Unary : public Expr
     const Expr* right;
 };
 
+class Variable : public Expr
+{
+  public:
+    Variable(Token* name);
+    ~Variable() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* name;
+};
+
 class Visitor
 {
   public:
     virtual std::any visitBinaryExpr(const Binary* expr) = 0;
+    virtual std::any visitAssignExpr(const Assign* expr) = 0;
     virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;
     virtual std::any visitUnaryExpr(const Unary* expr) = 0;
+    virtual std::any visitVariableExpr(const Variable* expr) = 0;
 };
 }

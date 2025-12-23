@@ -1,5 +1,14 @@
 #include <token.hpp>
 
+#if TOKEN_DEBUG
+#include <iostream>
+
+Token::~Token()
+{
+    std::cout << "freed: " << toString() << std::endl;
+}
+#endif
+
 TokenType Token::getType() const
 {
     return type;

@@ -1,7 +1,7 @@
+#include "literal_value.hpp"
 #include <expr.hpp>
 #include <lox.hpp>
 #include <parser.hpp>
-#include <token.hpp>
 #include <token_type.hpp>
 
 Parser::Parser(std::vector<Token*> tokens)
@@ -24,10 +24,46 @@ std::vector<stmt::Stmt*> Parser::parse()
 
     while (!isAtEnd())
     {
-        statements.push_back(statement());
+        statements.push_back(declaration());
     }
 
     return statements;
+}
+
+stmt::Stmt* Parser::declaration()
+{
+    try
+    {
+        if (match(TokenType::VAR))
+        {
+            freeUnownedToken();
+            return varDeclaration();
+        }
+
+        return statement();
+    }
+    catch (ParseError)
+    {
+        synchronize();
+        return nullptr;
+    }
+}
+
+stmt::Stmt* Parser::varDeclaration()
+{
+    Token* name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+    Expr* initializer = nullptr;
+
+    if (match(TokenType::EQUAL))
+    {
+        freeUnownedToken();
+        initializer = expression();
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+    freeUnownedToken();
+
+    return new stmt::Var(name, initializer);
 }
 
 stmt::Stmt* Parser::statement()
@@ -48,6 +84,7 @@ stmt::Stmt* Parser::printStatement()
 {
     Expr* value = expression();
     consume(TokenType::SEMICOLON, "Expect ';' after value.");
+    freeUnownedToken();
 
     return new stmt::Print{ value };
 }
@@ -56,17 +93,43 @@ stmt::Stmt* Parser::expressionStatement()
 {
     Expr* value = expression();
     consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+    freeUnownedToken();
 
     return new stmt::Expression{ value };
 }
 
 expr::Expr* Parser::expression()
 {
-    expr::Expr* expr = equality();
+    expr::Expr* expr = assignment();
 
     while (match(TokenType::COMMA))
     {
-        expr = equality();
+        expr = assignment();
+    }
+
+    return expr;
+}
+
+expr::Expr* Parser::assignment()
+{
+    expr::Expr* expr = equality();
+
+    if (match(TokenType::EQUAL))
+    {
+        Token* equals = previous();
+        expr::Expr* value = assignment();
+
+        expr::Variable* expr_var = dynamic_cast<expr::Variable*>(expr);
+
+        if (expr_var != nullptr)
+        {
+            Token* name = new Token{ expr_var->name->getType(), expr_var->name->getLexeme(),
+                LiteralValue{}, expr_var->name->getLine() };
+
+            return new expr::Assign{ name, value };
+        }
+
+        error(equals, "Invalid assignment target");
     }
 
     return expr;
@@ -152,8 +215,13 @@ expr::Expr* Parser::primary()
     {
         expr::Expr* expr = expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
+        freeUnownedToken();
 
         return new expr::Grouping(expr);
+    }
+    else if (match(TokenType::IDENTIFIER))
+    {
+        return new expr::Variable(previous());
     }
     else
     {
@@ -234,8 +302,6 @@ Token* Parser::consume(TokenType type, std::string message)
     if (check(type))
     {
         auto e = advance();
-        freeUnownedToken();
-
         return e;
     }
 
