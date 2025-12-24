@@ -4,8 +4,10 @@
 #include <expr.hpp>
 
 #include <any>
+#include <vector>
 
 using expr::Expr;
+using std::vector;
 
 namespace stmt
 {
@@ -36,6 +38,30 @@ class Expression : public Stmt
     const Expr* expression;
 };
 
+class If : public Stmt
+{
+  public:
+    If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch);
+    ~If() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* condition;
+    const Stmt* thenBranch;
+    const Stmt* elseBranch;
+};
+
+class Block : public Stmt
+{
+  public:
+    Block(vector<Stmt*>* statements);
+    ~Block() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const vector<Stmt*>* statements;
+};
+
 class Print : public Stmt
 {
   public:
@@ -63,6 +89,8 @@ class Visitor
 {
   public:
     virtual std::any visitExpressionStmt(const Expression* stmt) = 0;
+    virtual std::any visitIfStmt(const If* stmt) = 0;
+    virtual std::any visitBlockStmt(const Block* stmt) = 0;
     virtual std::any visitPrintStmt(const Print* stmt) = 0;
     virtual std::any visitVarStmt(const Var* stmt) = 0;
 };

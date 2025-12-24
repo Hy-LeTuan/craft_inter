@@ -1,4 +1,5 @@
 #include "literal_value.hpp"
+#include "stmt.hpp"
 #include <expr.hpp>
 #include <lox.hpp>
 #include <parser.hpp>
@@ -73,11 +74,56 @@ stmt::Stmt* Parser::statement()
         // this also needs to be here for the same reason as in the function `primary()`
         // read it for full explaination
         freeUnownedToken();
-
         return printStatement();
+    }
+    else if (match(TokenType::LEFT_BRACE))
+    {
+        auto statements = block();
+        return new stmt::Block(statements);
+    }
+    else if (match(TokenType::IF))
+    {
+        return ifStatement();
     }
 
     return expressionStatement();
+}
+
+stmt::Stmt* Parser::ifStatement()
+{
+    consume(TokenType::LEFT_PAREN, "Expect '(' after if.");
+    freeUnownedToken();
+
+    Expr* condition = expression();
+
+    consume(TokenType::RIGHT_PAREN, "Expect ') after if condition.");
+    freeUnownedToken();
+
+    stmt::Stmt* thenBranch = statement();
+    stmt::Stmt* elseBranch = nullptr;
+
+    if (match(TokenType::ELSE))
+    {
+        freeUnownedToken();
+        elseBranch = statement();
+    }
+
+    return new stmt::If{ condition, thenBranch, elseBranch };
+}
+
+std::vector<stmt::Stmt*>* Parser::block()
+{
+    std::vector<stmt::Stmt*>* statements = new std::vector<stmt::Stmt*>{};
+
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd())
+    {
+        statements->push_back(declaration());
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after block");
+    freeUnownedToken();
+
+    return statements;
 }
 
 stmt::Stmt* Parser::printStatement()
@@ -112,7 +158,7 @@ expr::Expr* Parser::expression()
 
 expr::Expr* Parser::assignment()
 {
-    expr::Expr* expr = equality();
+    expr::Expr* expr = logic_or();
 
     if (match(TokenType::EQUAL))
     {
@@ -130,6 +176,32 @@ expr::Expr* Parser::assignment()
         }
 
         error(equals, "Invalid assignment target");
+    }
+
+    return expr;
+}
+
+expr::Expr* Parser::logic_or()
+{
+    Expr* expr = logic_and();
+
+    while (match(TokenType::OR))
+    {
+        Token* op = previous();
+        Expr* right = logic_and();
+        expr = new expr::Logical(expr, op, right);
+    }
+}
+
+expr::Expr* Parser::logic_and()
+{
+    Expr* expr = equality();
+
+    while (match(TokenType::AND))
+    {
+        Token* op = previous();
+        Expr* right = equality();
+        expr = new expr::Logical(expr, op, right);
     }
 
     return expr;

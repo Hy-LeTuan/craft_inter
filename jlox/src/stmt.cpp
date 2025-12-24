@@ -28,6 +28,52 @@ std::any Expression::accept(Visitor* visitor) const
     return visitor->visitExpressionStmt(this);
 }
 
+If::If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch)
+  : condition{ condition }
+  , thenBranch{ thenBranch }
+  , elseBranch{ elseBranch }
+{
+}
+
+If::~If()
+{
+    if (condition)
+    {
+        delete condition;
+    }
+    if (thenBranch)
+    {
+        delete thenBranch;
+    }
+    if (elseBranch)
+    {
+        delete elseBranch;
+    }
+}
+
+std::any If::accept(Visitor* visitor) const
+{
+    return visitor->visitIfStmt(this);
+}
+
+Block::Block(vector<Stmt*>* statements)
+  : statements{ statements }
+{
+}
+
+Block::~Block()
+{
+    if (statements)
+    {
+        delete statements;
+    }
+}
+
+std::any Block::accept(Visitor* visitor) const
+{
+    return visitor->visitBlockStmt(this);
+}
+
 Print::Print(Expr* expression)
   : expression{ expression }
 {

@@ -26,11 +26,15 @@ class Parser
     stmt::Stmt* declaration();
     stmt::Stmt* varDeclaration();
     stmt::Stmt* statement();
+    stmt::Stmt* ifStatement();
+    std::vector<stmt::Stmt*>* block();
     stmt::Stmt* printStatement();
     stmt::Stmt* expressionStatement();
 
     expr::Expr* expression();
     expr::Expr* assignment();
+    expr::Expr* logic_or();
+    expr::Expr* logic_and();
     expr::Expr* equality();
     expr::Expr* comparison();
     expr::Expr* term();

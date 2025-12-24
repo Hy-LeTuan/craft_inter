@@ -1,9 +1,55 @@
-#include "object.hpp"
+#include <object.hpp>
 #include <runtime_error.hpp>
 #include <interpreter.hpp>
 #include <token_type.hpp>
 #include <lox.hpp>
+
+#include <exception>
 #include <iostream>
+
+Object Interpreter::visitIfStmt(const stmt::If* stmt)
+{
+    Object condition = evaluate(stmt->condition);
+
+    if (isTruthy(condition))
+    {
+        execute(stmt->thenBranch);
+    }
+    else if (stmt->elseBranch)
+    {
+        execute(stmt->elseBranch);
+    }
+
+    return nullptr;
+}
+
+Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
+{
+    executeBlock(stmt->statements, new Environment{ environment });
+    return nullptr;
+}
+
+void Interpreter::executeBlock(
+  const vector<stmt::Stmt*>* statements, Environment* child_environment)
+{
+    Environment* previous = this->environment;
+
+    try
+    {
+        this->environment = child_environment;
+
+        for (auto statement : *statements)
+        {
+            execute(statement);
+        }
+    }
+    catch (std::exception)
+    {
+        this->environment = previous;
+    }
+
+    this->environment = previous;
+}
 
 Object Interpreter::visitExpressionStmt(const stmt::Expression* stmt)
 {
@@ -28,19 +74,41 @@ Object Interpreter::visitVarStmt(const stmt::Var* stmt)
         value = evaluate(stmt->initializer);
     }
 
-    environment.define(stmt->name->getLexeme(), value);
+    environment->define(stmt->name->getLexeme(), value);
     return nullptr;
+}
+
+Object Interpreter::visitLogicalExpr(const expr::Logical* expr)
+{
+    Object left = evaluate(expr->left);
+
+    if (expr->op->getType() == TokenType::OR)
+    {
+        if (isTruthy(left))
+        {
+            return left;
+        }
+    }
+    else
+    {
+        if (!isTruthy(left))
+        {
+            return left;
+        }
+    }
+
+    return evaluate(expr->right);
 }
 
 Object Interpreter::visitVariableExpr(const expr::Variable* expr)
 {
-    return environment.get(expr->name);
+    return environment->get(expr->name);
 }
 
 Object Interpreter::visitAssignExpr(const expr::Assign* expr)
 {
     Object value = evaluate(expr->value);
-    environment.assign(expr->name, value);
+    environment->assign(expr->name, value);
 
     return value;
 }
@@ -259,7 +327,7 @@ void Interpreter::interpret(std::vector<stmt::Stmt*> statements)
     }
 }
 
-void Interpreter::execute(stmt::Stmt* statement)
+void Interpreter::execute(const stmt::Stmt* statement)
 {
     statement->accept(this);
 }

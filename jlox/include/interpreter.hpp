@@ -12,10 +12,13 @@ class Interpreter
   , public stmt::Visitor
 {
   public:
+    Object visitIfStmt(const stmt::If* stmt) override;
+    Object visitBlockStmt(const stmt::Block* stmt) override;
     Object visitExpressionStmt(const stmt::Expression* stmt) override;
     Object visitPrintStmt(const stmt::Print* stmt) override;
     Object visitVarStmt(const stmt::Var* stmt) override;
 
+    Object visitLogicalExpr(const expr::Logical* expr) override;
     Object visitBinaryExpr(const expr::Binary* expr) override;
     Object visitGroupingExpr(const expr::Grouping* expr) override;
     Object visitLiteralExpr(const expr::Literal* expr) override;
@@ -26,7 +29,8 @@ class Interpreter
     void interpret(std::vector<stmt::Stmt*> statements);
 
   private:
-    void execute(stmt::Stmt* statement);
+    void executeBlock(const vector<stmt::Stmt*>* statements, Environment* env);
+    void execute(const stmt::Stmt* statement);
     Object evaluate(const expr::Expr* expr);
     bool isTruthy(Object& right);
     bool isEqual(Object& left, Object& right);
@@ -34,5 +38,5 @@ class Interpreter
     void checkNumberOperands(const Token* op, Object& left, Object& right);
     std::string stringify(Object& object);
 
-    Environment environment;
+    Environment* environment = new Environment{};
 };

@@ -10,96 +10,117 @@ class Visitor;
 
 class Expr
 {
-  public:
-    Expr() = default;
-    virtual ~Expr() = 0;
+public:
+Expr() = default;
+virtual ~Expr() = 0;
 
-    Expr(const Expr&) = delete;
-    Expr& operator=(const Expr&) = delete;
-    Expr(Expr&&) = delete;
-    Expr& operator=(Expr&&) = delete;
+Expr(const Expr&) = delete;
+Expr& operator=(const Expr&) = delete;
+Expr(Expr&&) = delete;
+Expr& operator=(Expr&&) = delete;
 
-    virtual std::any accept(Visitor* visitor) const = 0;
+virtual std::any accept(Visitor* visitor) const = 0;
 };
 
 class Binary : public Expr
 {
-  public:
-    Binary(Expr* left, Token* op, Expr* right);
-    ~Binary() override;
+public:
+Binary(Expr* left, Token* op, Expr* right);
+~Binary() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const Expr* left;
-    const Token* op;
-    const Expr* right;
+const Expr* left;
+const Token* op;
+const Expr* right;
 };
+
 
 class Assign : public Expr
 {
-  public:
-    Assign(Token* name, Expr* value);
-    ~Assign() override;
+public:
+Assign(Token* name, Expr* value);
+~Assign() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const Token* name;
-    const Expr* value;
+const Token* name;
+const Expr* value;
 };
+
 
 class Grouping : public Expr
 {
-  public:
-    Grouping(Expr* expression);
-    ~Grouping() override;
+public:
+Grouping(Expr* expression);
+~Grouping() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const Expr* expression;
+const Expr* expression;
 };
+
 
 class Literal : public Expr
 {
-  public:
-    Literal(LiteralValue* value);
-    ~Literal() override;
+public:
+Literal(LiteralValue* value);
+~Literal() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const LiteralValue* value;
+const LiteralValue* value;
 };
+
+
+class Logical : public Expr
+{
+public:
+Logical(Expr* left, Token* op, Expr* right);
+~Logical() override;
+
+std::any accept(Visitor* visitor) const override;
+
+const Expr* left;
+const Token* op;
+const Expr* right;
+};
+
 
 class Unary : public Expr
 {
-  public:
-    Unary(Token* op, Expr* right);
-    ~Unary() override;
+public:
+Unary(Token* op, Expr* right);
+~Unary() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const Token* op;
-    const Expr* right;
+const Token* op;
+const Expr* right;
 };
+
 
 class Variable : public Expr
 {
-  public:
-    Variable(Token* name);
-    ~Variable() override;
+public:
+Variable(Token* name);
+~Variable() override;
 
-    std::any accept(Visitor* visitor) const override;
+std::any accept(Visitor* visitor) const override;
 
-    const Token* name;
+const Token* name;
 };
+
 
 class Visitor
 {
-  public:
-    virtual std::any visitBinaryExpr(const Binary* expr) = 0;
-    virtual std::any visitAssignExpr(const Assign* expr) = 0;
-    virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
-    virtual std::any visitLiteralExpr(const Literal* expr) = 0;
-    virtual std::any visitUnaryExpr(const Unary* expr) = 0;
-    virtual std::any visitVariableExpr(const Variable* expr) = 0;
+public:
+virtual std::any visitBinaryExpr(const Binary* expr) = 0;
+virtual std::any visitAssignExpr(const Assign* expr) = 0;
+virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
+virtual std::any visitLiteralExpr(const Literal* expr) = 0;
+virtual std::any visitLogicalExpr(const Logical* expr) = 0;
+virtual std::any visitUnaryExpr(const Unary* expr) = 0;
+virtual std::any visitVariableExpr(const Variable* expr) = 0;
 };
 }

@@ -85,10 +85,14 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
 
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <any>\n")
+    if baseName.lower() != "expr":
+        _ = headerFile.write("#include <vector>\n")
+
     _ = headerFile.write("\n")
 
     if baseName.lower() != "expr":
         _ = headerFile.write("using expr::Expr;\n")
+        _ = headerFile.write("using std::vector;\n")
         _ = headerFile.write("\n")
 
     # open namespace
@@ -168,12 +172,15 @@ def main():
         "Assign: Token* name, Expr* value",
         "Grouping : Expr* expression",
         "Literal  : LiteralValue* value",
+        "Logical : Expr* left, Token* op, Expr* right",
         "Unary    : Token* op, Expr* right",
         "Variable : Token* name"
     ])
 
     # defineAst(outputDir, "Stmt", [
     #     "Expression : Expr* expression",
+    #     "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
+    #     "Block : vector<Stmt*>* statements",
     #     "Print      : Expr* expression",
     #     "Var        : Token* name, Expr* initializer"
     # ])

@@ -46,3 +46,19 @@ For integers, there isn't a defined way to handle divide by zero. Following popu
 For Lox, I think that it is good to have support for infinity, negative infinity and NaN type, just to give users the flexibility to use them and since it adds no complexitiy to our implementation for these values are supported natively by C++.
 
 === 5. Change the implementation in visitBinaryExpr() to detect and report a runtime error for this case.
+
+== 8. Statements and State
+
+=== 3. What does the following program do?
+
+The following program prints out `3` because the `a` inside the scope is overriding the global `a`, but the assignment expression was evaluated first before `a` was inserted into the scoped environment. This behavior is supported through the shadowing mechanism in Rust, but leads to undefined behavior in languages like C++, C, and straigt up error in Java, Javascript and Python. Even though C++ and C does allow variable shadowing for variables of different scopes, since the variable declaration is processed before the assignment expression is evaluated in these languages, the `a` in `a = a + 1` refers to the new variable being declared, and the new `a` has not yet been assigned a value, which leads to undefined behaviors. In Java and Javascript, this leads to an error since they don't support variable shadowing. Python is a special case, since there's no clean way to achieve this  lexical scoping without an additoinal statement, but if we were to put this into a function
+
+```python
+a = 1
+def func():
+  a = a + 1
+func()
+```
+
+then Python will report that a is accessed before it's initialized, for reasons similar to C and C++.
+

@@ -64,6 +64,11 @@ void Lox::runPrompt()
             break;
         }
 
+        if (line.find(";") == std::string::npos)
+        {
+            line.append(";");
+        }
+
         run(line);
 
         if (HAD_ERROR)

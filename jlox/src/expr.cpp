@@ -97,6 +97,34 @@ std::any Literal::accept(Visitor* visitor) const
     return visitor->visitLiteralExpr(this);
 }
 
+Logical::Logical(Expr* left, Token* op, Expr* right)
+  : left{ left }
+  , op{ op }
+  , right{ right }
+{
+}
+
+Logical::~Logical()
+{
+    if (left)
+    {
+        delete left;
+    }
+    if (op)
+    {
+        delete op;
+    }
+    if (right)
+    {
+        delete right;
+    }
+}
+
+std::any Logical::accept(Visitor* visitor) const
+{
+    return visitor->visitLogicalExpr(this);
+}
+
 Unary::Unary(Token* op, Expr* right)
   : op{ op }
   , right{ right }
