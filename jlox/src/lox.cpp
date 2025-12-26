@@ -32,10 +32,9 @@ void Lox::run(std::string source)
         return;
     }
 
-    // std::cout << AstPrinter{}.print(expr) << std::endl;
     Lox::interpreter.interpret(statements);
 
-    // top down clean up of statements
+    // // top down clean up of statements
     for (auto statement : statements)
     {
         if (statement)
@@ -124,10 +123,12 @@ void Lox::error(Token* token, std::string message)
     if (token->getType() == TokenType::__EOF__)
     {
         report(token->getLine(), " at end", message);
+        free(token);
     }
     else
     {
         report(token->getLine(), " at '" + token->getLexeme() + "'", message);
+        free(token);
     }
 }
 

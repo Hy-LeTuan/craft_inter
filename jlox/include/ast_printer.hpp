@@ -1,20 +1,35 @@
 #pragma once
 
+#include <stmt.hpp>
 #include <expr.hpp>
+#include <object.hpp>
 
 #include <string>
 #include <any>
 #include <iostream>
 
-class AstPrinter : public expr::Visitor
+class AstPrinter
+  : public expr::Visitor
+  , public stmt::Visitor
 {
   public:
-    std::any visitBinaryExpr(const expr::Binary* expr) override;
-    std::any visitGroupingExpr(const expr::Grouping* expr) override;
-    std::any visitLiteralExpr(const expr::Literal* expr) override;
-    std::any visitUnaryExpr(const expr::Unary* expr) override;
+    Object visitBinaryExpr(const expr::Binary* expr) override;
+    Object visitAssignExpr(const expr::Assign* expr) override;
+    Object visitGroupingExpr(const expr::Grouping* expr) override;
+    Object visitLiteralExpr(const expr::Literal* expr) override;
+    Object visitLogicalExpr(const expr::Logical* expr) override;
+    Object visitUnaryExpr(const expr::Unary* expr) override;
+    Object visitVariableExpr(const expr::Variable* expr) override;
 
-    std::string print(expr::Expr* expr);
+    Object visitExpressionStmt(const stmt::Expression* stmt) override;
+    Object visitIfStmt(const stmt::If* stmt) override;
+    Object visitBlockStmt(const stmt::Block* stmt) override;
+    Object visitPrintStmt(const stmt::Print* stmt) override;
+    Object visitVarStmt(const stmt::Var* stmt) override;
+    Object visitWhileStmt(const stmt::While* stmt) override;
+
+    void print(const stmt::Stmt* stmt);
+    std::string stringify(const stmt::Stmt* stmt);
 
   private:
     template<typename... Args>

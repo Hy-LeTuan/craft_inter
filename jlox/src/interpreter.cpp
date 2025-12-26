@@ -1,11 +1,33 @@
+#include <ast_printer.hpp>
 #include <object.hpp>
 #include <runtime_error.hpp>
 #include <interpreter.hpp>
 #include <token_type.hpp>
 #include <lox.hpp>
 
-#include <exception>
 #include <iostream>
+#include <iomanip>
+#include <ios>
+
+Interpreter::Interpreter()
+  : environment{ new Environment() }
+{
+}
+
+Interpreter::~Interpreter()
+{
+    delete environment;
+}
+
+Object Interpreter::visitWhileStmt(const stmt::While* stmt)
+{
+    while (isTruthy(evaluate(stmt->condition)))
+    {
+        execute(stmt->body);
+    }
+
+    return nullptr;
+}
 
 Object Interpreter::visitIfStmt(const stmt::If* stmt)
 {
@@ -25,7 +47,9 @@ Object Interpreter::visitIfStmt(const stmt::If* stmt)
 
 Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
 {
+
     executeBlock(stmt->statements, new Environment{ environment });
+
     return nullptr;
 }
 
@@ -38,17 +62,19 @@ void Interpreter::executeBlock(
     {
         this->environment = child_environment;
 
-        for (auto statement : *statements)
+        for (auto stmt : *statements)
         {
-            execute(statement);
+            execute(stmt);
         }
     }
-    catch (std::exception)
+    catch (RuntimeError e)
     {
         this->environment = previous;
+        throw e;
     }
 
     this->environment = previous;
+    delete child_environment;
 }
 
 Object Interpreter::visitExpressionStmt(const stmt::Expression* stmt)
@@ -60,7 +86,15 @@ Object Interpreter::visitExpressionStmt(const stmt::Expression* stmt)
 Object Interpreter::visitPrintStmt(const stmt::Print* stmt)
 {
     Object value = evaluate(stmt->expression);
-    std::cout << stringify(value) << std::endl;
+
+    if (ObjectParser::isDouble(value))
+    {
+        std::cout << std::fixed << std::setprecision(2) << ObjectGetDouble(value) << std::endl;
+    }
+    else
+    {
+        std::cout << stringify(value) << std::endl;
+    }
 
     return nullptr;
 }
@@ -225,7 +259,7 @@ Object Interpreter::evaluate(const expr::Expr* expr)
     return expr->accept(this);
 }
 
-bool Interpreter::isTruthy(Object& right)
+bool Interpreter::isTruthy(Object right)
 {
     if (ObjectParser::isNull(right))
     {

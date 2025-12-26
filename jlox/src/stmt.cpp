@@ -65,6 +65,14 @@ Block::~Block()
 {
     if (statements)
     {
+        for (auto stmt : *statements)
+        {
+            if (stmt)
+            {
+                delete stmt;
+            }
+        }
+
         delete statements;
     }
 }
@@ -113,6 +121,29 @@ Var::~Var()
 std::any Var::accept(Visitor* visitor) const
 {
     return visitor->visitVarStmt(this);
+}
+
+While::While(Expr* condition, Stmt* body)
+  : condition{ condition }
+  , body{ body }
+{
+}
+
+While::~While()
+{
+    if (condition)
+    {
+        delete condition;
+    }
+    if (body)
+    {
+        delete body;
+    }
+}
+
+std::any While::accept(Visitor* visitor) const
+{
+    return visitor->visitWhileStmt(this);
 }
 
 }

@@ -1,4 +1,4 @@
-#include "runtime_error.hpp"
+#include <runtime_error.hpp>
 #include <environment.hpp>
 
 Environment::Environment()
@@ -19,12 +19,12 @@ void Environment::define(std::string name, Object value)
 Object Environment::get(const Token* name) const
 {
     auto it = values.find(name->getLexeme());
+
     if (it != values.end())
     {
         return it->second;
     }
-
-    if (enclosing)
+    else if (enclosing)
     {
         return enclosing->get(name);
     }
@@ -41,11 +41,13 @@ void Environment::assign(const Token* name, Object value)
         it->second = value;
         return;
     }
-
-    if (enclosing)
+    else if (enclosing)
     {
         enclosing->assign(name, value);
+        return;
     }
-
-    throw RuntimeError{ name, "Undefined variable '" + name->getLexeme() + "'." };
+    else
+    {
+        throw RuntimeError{ name, "Undefined variable '" + name->getLexeme() + "'." };
+    }
 }

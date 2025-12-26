@@ -21,7 +21,14 @@ set(CLOX_SOURCES
     src/environment.cpp
 )
 
-option(TOKEN_DEBUG "Enable token debugging destructor" 0)
+option(TOKEN_DEBUG_OPTION "Enable token debugging destructor" OFF)
+
+if (${TOKEN_DEBUG_OPTION})
+    set(TOKEN_DEBUG 1)
+else()
+    set(TOKEN_DEBUG 0)
+endif()
+
 
 add_executable(${PROJECT_NAME} ${CLOX_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE TOKEN_DEBUG=${TOKEN_DEBUG})

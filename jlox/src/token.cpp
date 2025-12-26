@@ -1,3 +1,4 @@
+#include "literal_value.hpp"
 #include <token.hpp>
 
 #if TOKEN_DEBUG
@@ -34,7 +35,10 @@ std::string Token::getLexeme() const
 
 LiteralValue* Token::getLiteral() const
 {
-    return new LiteralValue{ literal };
+    LiteralValue* l = new LiteralValue{};
+    *l = literal;
+
+    return l;
 }
 
 std::string Token::toString() const

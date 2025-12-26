@@ -7,6 +7,8 @@
 
 #include <vector>
 
+using VecStmt = std::vector<stmt::Stmt*>;
+
 class ParseError : public std::exception
 {
 };
@@ -26,8 +28,10 @@ class Parser
     stmt::Stmt* declaration();
     stmt::Stmt* varDeclaration();
     stmt::Stmt* statement();
+    stmt::Stmt* whileStatement();
+    stmt::Stmt* forStatement();
     stmt::Stmt* ifStatement();
-    std::vector<stmt::Stmt*>* block();
+    VecStmt* block();
     stmt::Stmt* printStatement();
     stmt::Stmt* expressionStatement();
 
@@ -60,6 +64,8 @@ class Parser
     bool check(TokenType type);
     bool isAtEnd();
     void freeUnownedToken();
+    void freeUnownedToken(Token* token);
+    void freeExpression(expr::Expr* expr);
     Token* peek();
     Token* previous();
     Token* advance();

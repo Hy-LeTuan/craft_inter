@@ -167,23 +167,24 @@ def main():
 
     outputDir: str = sys.argv[1]
 
-    defineAst(outputDir, "Expr", [
-        "Binary   : Expr* left, Token* op, Expr* right",
-        "Assign: Token* name, Expr* value",
-        "Grouping : Expr* expression",
-        "Literal  : LiteralValue* value",
-        "Logical : Expr* left, Token* op, Expr* right",
-        "Unary    : Token* op, Expr* right",
-        "Variable : Token* name"
-    ])
-
-    # defineAst(outputDir, "Stmt", [
-    #     "Expression : Expr* expression",
-    #     "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
-    #     "Block : vector<Stmt*>* statements",
-    #     "Print      : Expr* expression",
-    #     "Var        : Token* name, Expr* initializer"
+    # defineAst(outputDir, "Expr", [
+    #     "Binary   : Expr* left, Token* op, Expr* right",
+    #     "Assign: Token* name, Expr* value",
+    #     "Grouping : Expr* expression",
+    #     "Literal  : LiteralValue* value",
+    #     "Logical : Expr* left, Token* op, Expr* right",
+    #     "Unary    : Token* op, Expr* right",
+    #     "Variable : Token* name"
     # ])
+
+    defineAst(outputDir, "Stmt", [
+        "Expression : Expr* expression",
+        "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
+        "Block : vector<Stmt*>* statements",
+        "Print      : Expr* expression",
+        "Var        : Token* name, Expr* initializer",
+        "While        : Expr* condition, Stmt* body"
+    ])
 
 
 if __name__ == "__main__":

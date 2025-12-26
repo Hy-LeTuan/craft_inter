@@ -85,6 +85,18 @@ class Var : public Stmt
     const Expr* initializer;
 };
 
+class While : public Stmt
+{
+  public:
+    While(Expr* condition, Stmt* body);
+    ~While() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* condition;
+    const Stmt* body;
+};
+
 class Visitor
 {
   public:
@@ -93,5 +105,6 @@ class Visitor
     virtual std::any visitBlockStmt(const Block* stmt) = 0;
     virtual std::any visitPrintStmt(const Print* stmt) = 0;
     virtual std::any visitVarStmt(const Var* stmt) = 0;
+    virtual std::any visitWhileStmt(const While* stmt) = 0;
 };
 }

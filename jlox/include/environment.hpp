@@ -10,6 +10,7 @@ class Environment
   public:
     Environment();
     Environment(Environment* enclosing);
+
     void define(std::string name, Object value);
     Object get(const Token* name) const;
     void assign(const Token* name, Object value);

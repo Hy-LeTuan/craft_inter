@@ -1,5 +1,4 @@
-#include "literal_value.hpp"
-#include "stmt.hpp"
+#include <stmt.hpp>
 #include <expr.hpp>
 #include <lox.hpp>
 #include <parser.hpp>
@@ -19,9 +18,9 @@ Parser::~Parser()
     }
 }
 
-std::vector<stmt::Stmt*> Parser::parse()
+VecStmt Parser::parse()
 {
-    std::vector<stmt::Stmt*> statements;
+    VecStmt statements;
 
     while (!isAtEnd())
     {
@@ -78,15 +77,108 @@ stmt::Stmt* Parser::statement()
     }
     else if (match(TokenType::LEFT_BRACE))
     {
+        freeUnownedToken();
         auto statements = block();
         return new stmt::Block(statements);
     }
     else if (match(TokenType::IF))
     {
+        freeUnownedToken();
         return ifStatement();
     }
+    else if (match(TokenType::WHILE))
+    {
+        freeUnownedToken();
+        return whileStatement();
+    }
+    else if (match(TokenType::FOR))
+    {
+        freeUnownedToken();
+        return forStatement();
+    }
+    else
+    {
+        return expressionStatement();
+    }
+}
 
-    return expressionStatement();
+stmt::Stmt* Parser::forStatement()
+{
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
+    freeUnownedToken();
+
+    stmt::Stmt* initializer = nullptr;
+
+    if (match(TokenType::SEMICOLON))
+    {
+        freeUnownedToken();
+        initializer = nullptr;
+    }
+    else if (match(TokenType::VAR))
+    {
+        freeUnownedToken();
+        initializer = varDeclaration();
+    }
+    else
+    {
+        initializer = expressionStatement();
+    }
+
+    expr::Expr* condition = nullptr;
+
+    if (!check(TokenType::SEMICOLON))
+    {
+        condition = expression();
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ';' after loop condition.");
+    freeUnownedToken();
+
+    Expr* increment = nullptr;
+
+    if (!check(TokenType::RIGHT_PAREN))
+    {
+        increment = expression();
+    }
+
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses.");
+    freeUnownedToken();
+
+    stmt::Stmt* body = statement();
+
+    if (increment)
+    {
+        body = new stmt::Block(new VecStmt{ body, new stmt::Expression{ increment } });
+    }
+
+    if (!condition)
+    {
+        condition = new expr::Literal{ new LiteralValue{ true } };
+    }
+
+    body = new stmt::While{ condition, body };
+
+    if (initializer)
+    {
+        body = new stmt::Block{ new VecStmt{ initializer, body } };
+    }
+
+    return body;
+}
+
+stmt::Stmt* Parser::whileStatement()
+{
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+    freeUnownedToken();
+
+    Expr* condition = expression();
+
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after 'while'.");
+    freeUnownedToken();
+
+    stmt::Stmt* body = statement();
+
+    return new stmt::While{ condition, body };
 }
 
 stmt::Stmt* Parser::ifStatement()
@@ -111,9 +203,9 @@ stmt::Stmt* Parser::ifStatement()
     return new stmt::If{ condition, thenBranch, elseBranch };
 }
 
-std::vector<stmt::Stmt*>* Parser::block()
+VecStmt* Parser::block()
 {
-    std::vector<stmt::Stmt*>* statements = new std::vector<stmt::Stmt*>{};
+    VecStmt* statements = new VecStmt{};
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd())
     {
@@ -138,6 +230,7 @@ stmt::Stmt* Parser::printStatement()
 stmt::Stmt* Parser::expressionStatement()
 {
     Expr* value = expression();
+
     consume(TokenType::SEMICOLON, "Expect ';' after expression.");
     freeUnownedToken();
 
@@ -150,6 +243,7 @@ expr::Expr* Parser::expression()
 
     while (match(TokenType::COMMA))
     {
+        freeUnownedToken();
         expr = assignment();
     }
 
@@ -167,15 +261,20 @@ expr::Expr* Parser::assignment()
 
         expr::Variable* expr_var = dynamic_cast<expr::Variable*>(expr);
 
-        if (expr_var != nullptr)
+        if (expr_var)
         {
+            freeUnownedToken(equals);
+            freeExpression(expr_var);
+
             Token* name = new Token{ expr_var->name->getType(), expr_var->name->getLexeme(),
                 LiteralValue{}, expr_var->name->getLine() };
 
             return new expr::Assign{ name, value };
         }
-
-        error(equals, "Invalid assignment target");
+        else
+        {
+            error(std::move(equals), "Invalid assignment target");
+        }
     }
 
     return expr;
@@ -191,6 +290,8 @@ expr::Expr* Parser::logic_or()
         Expr* right = logic_and();
         expr = new expr::Logical(expr, op, right);
     }
+
+    return expr;
 }
 
 expr::Expr* Parser::logic_and()
@@ -276,8 +377,10 @@ expr::Expr* Parser::unary()
 
         return new expr::Unary(op, right);
     }
-
-    return primary();
+    else
+    {
+        return primary();
+    }
 }
 
 expr::Expr* Parser::primary()
@@ -285,7 +388,9 @@ expr::Expr* Parser::primary()
 
     if (match(TokenType::LEFT_PAREN))
     {
+        freeUnownedToken();
         expr::Expr* expr = expression();
+
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
         freeUnownedToken();
 
@@ -293,7 +398,7 @@ expr::Expr* Parser::primary()
     }
     else if (match(TokenType::IDENTIFIER))
     {
-        return new expr::Variable(previous());
+        return new expr::Variable(std::move(previous()));
     }
     else
     {
@@ -327,8 +432,10 @@ expr::Expr* Parser::primary()
         {
             throw error(peek(), "Expect expression.");
         }
-
-        return literalExpression;
+        else
+        {
+            return literalExpression;
+        }
     }
 }
 
@@ -417,4 +524,14 @@ void Parser::synchronize()
 void Parser::freeUnownedToken()
 {
     delete previous();
+}
+
+void Parser::freeUnownedToken(Token* token)
+{
+    delete token;
+}
+
+void Parser::freeExpression(expr::Expr* expr)
+{
+    delete expr;
 }
