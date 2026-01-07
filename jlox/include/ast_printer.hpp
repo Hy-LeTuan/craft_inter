@@ -1,8 +1,7 @@
 #pragma once
 
-#include <stmt.hpp>
-#include <expr.hpp>
-#include <object.hpp>
+#include "object_utils.hpp"
+#include <alias.hpp>
 
 #include <string>
 #include <any>
@@ -14,6 +13,7 @@ class AstPrinter
 {
   public:
     Object visitBinaryExpr(const expr::Binary* expr) override;
+    Object visitCallExpr(const expr::Call* expr) override;
     Object visitAssignExpr(const expr::Assign* expr) override;
     Object visitGroupingExpr(const expr::Grouping* expr) override;
     Object visitLiteralExpr(const expr::Literal* expr) override;
@@ -23,12 +23,15 @@ class AstPrinter
 
     Object visitExpressionStmt(const stmt::Expression* stmt) override;
     Object visitIfStmt(const stmt::If* stmt) override;
+    Object visitFunctionStmt(const stmt::Function* stmt) override;
     Object visitBlockStmt(const stmt::Block* stmt) override;
     Object visitPrintStmt(const stmt::Print* stmt) override;
+    Object visitReturnStmt(const stmt::Return* stmt) override;
     Object visitVarStmt(const stmt::Var* stmt) override;
     Object visitWhileStmt(const stmt::While* stmt) override;
 
     void print(const stmt::Stmt* stmt);
+	void printAll(const VecStmt &statements);
     std::string stringify(const stmt::Stmt* stmt);
 
   private:
@@ -45,7 +48,7 @@ class AstPrinter
                try
                {
                    std::any res = exprs->accept(this);
-                   output.append(std::any_cast<std::string>(res));
+                   output.append(ObjectGetString(res));
                }
                catch (const std::bad_any_cast& e)
                {
@@ -59,4 +62,7 @@ class AstPrinter
 
         return output;
     }
+
+    std::string stringify_block(const std::vector<stmt::Stmt*>* statements);
+    std::string stringify_tokens(const std::vector<Token*>* params);
 };

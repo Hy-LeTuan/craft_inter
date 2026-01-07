@@ -1,7 +1,8 @@
+#include <parser.hpp>
+
 #include <stmt.hpp>
 #include <expr.hpp>
 #include <lox.hpp>
-#include <parser.hpp>
 #include <token_type.hpp>
 
 Parser::Parser(std::vector<Token*> tokens)
@@ -34,19 +35,58 @@ stmt::Stmt* Parser::declaration()
 {
     try
     {
-        if (match(TokenType::VAR))
+        if (match(TokenType::FUN))
+        {
+            freeUnownedToken();
+            return function("function");
+        }
+        else if (match(TokenType::VAR))
         {
             freeUnownedToken();
             return varDeclaration();
         }
-
-        return statement();
+        else
+        {
+            return statement();
+        }
     }
     catch (ParseError)
     {
         synchronize();
         return nullptr;
     }
+}
+
+stmt::Stmt* Parser::function(std::string kind)
+{
+    Token* name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+    consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+    std::vector<Token*>* parameters = new std::vector<Token*>;
+
+    if (!check(TokenType::RIGHT_PAREN))
+    {
+        do
+        {
+            if (previous()->getType() == TokenType::COMMA)
+            {
+                freeUnownedToken();
+            }
+
+            if (parameters->size() >= 255)
+            {
+                error(peek(), "Can't have more than 255 parameters");
+            }
+
+            parameters->push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+        } while (match(TokenType::COMMA));
+    }
+
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    VecStmt* body = block();
+
+    return new stmt::Function(name, parameters, body);
 }
 
 stmt::Stmt* Parser::varDeclaration()
@@ -75,6 +115,10 @@ stmt::Stmt* Parser::statement()
         freeUnownedToken();
         return printStatement();
     }
+    else if (match(TokenType::RETURN))
+    {
+        return returnStatement();
+    }
     else if (match(TokenType::LEFT_BRACE))
     {
         freeUnownedToken();
@@ -100,6 +144,22 @@ stmt::Stmt* Parser::statement()
     {
         return expressionStatement();
     }
+}
+
+stmt::Stmt* Parser::returnStatement()
+{
+    Token* keyword = previous();
+    Expr* value = nullptr;
+
+    if (!check(TokenType::SEMICOLON))
+    {
+        value = expression();
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ; after return value.");
+    freeUnownedToken();
+
+    return new stmt::Return(keyword, value);
 }
 
 stmt::Stmt* Parser::forStatement()
@@ -188,7 +248,7 @@ stmt::Stmt* Parser::ifStatement()
 
     Expr* condition = expression();
 
-    consume(TokenType::RIGHT_PAREN, "Expect ') after if condition.");
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
     freeUnownedToken();
 
     stmt::Stmt* thenBranch = statement();
@@ -241,11 +301,11 @@ expr::Expr* Parser::expression()
 {
     expr::Expr* expr = assignment();
 
-    while (match(TokenType::COMMA))
-    {
-        freeUnownedToken();
-        expr = assignment();
-    }
+    // while (match(TokenType::COMMA))
+    // {
+    //     freeUnownedToken();
+    //     expr = assignment();
+    // }
 
     return expr;
 }
@@ -263,11 +323,10 @@ expr::Expr* Parser::assignment()
 
         if (expr_var)
         {
+            Token* name = expr_var->name->clone();
+
             freeUnownedToken(equals);
             freeExpression(expr_var);
-
-            Token* name = new Token{ expr_var->name->getType(), expr_var->name->getLexeme(),
-                LiteralValue{}, expr_var->name->getLine() };
 
             return new expr::Assign{ name, value };
         }
@@ -379,8 +438,53 @@ expr::Expr* Parser::unary()
     }
     else
     {
-        return primary();
+        return call();
     }
+}
+
+expr::Expr* Parser::call()
+{
+    expr::Expr* expr = primary();
+
+    while (true)
+    {
+        if (match(TokenType::LEFT_PAREN))
+        {
+            freeUnownedToken();
+            expr = finishCall(expr);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return expr;
+}
+
+expr::Expr* Parser::finishCall(expr::Expr* expr)
+{
+    VecExpr* arguments = new VecExpr;
+
+    if (!check(TokenType::RIGHT_PAREN))
+    {
+        arguments->push_back(expression());
+
+        while (match(TokenType::COMMA))
+        {
+            freeUnownedToken();
+            if (arguments->size() >= 255)
+            {
+                error(peek(), "Can't have more than 255 arguments");
+            }
+
+            arguments->push_back(expression());
+        }
+    }
+
+    Token* paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+
+    return new expr::Call(expr, paren, arguments);
 }
 
 expr::Expr* Parser::primary()

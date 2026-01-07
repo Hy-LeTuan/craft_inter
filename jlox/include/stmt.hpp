@@ -51,6 +51,19 @@ class If : public Stmt
     const Stmt* elseBranch;
 };
 
+class Function : public Stmt
+{
+  public:
+    Function(Token* name, vector<Token*>* params, vector<Stmt*>* body);
+    ~Function() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* name;
+    const vector<Token*>* params;
+    const vector<Stmt*>* body;
+};
+
 class Block : public Stmt
 {
   public:
@@ -71,6 +84,18 @@ class Print : public Stmt
     std::any accept(Visitor* visitor) const override;
 
     const Expr* expression;
+};
+
+class Return : public Stmt
+{
+  public:
+    Return(Token* keyword, Expr* value);
+    ~Return() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* keyword;
+    const Expr* value;
 };
 
 class Var : public Stmt
@@ -102,8 +127,10 @@ class Visitor
   public:
     virtual std::any visitExpressionStmt(const Expression* stmt) = 0;
     virtual std::any visitIfStmt(const If* stmt) = 0;
+    virtual std::any visitFunctionStmt(const Function* stmt) = 0;
     virtual std::any visitBlockStmt(const Block* stmt) = 0;
     virtual std::any visitPrintStmt(const Print* stmt) = 0;
+    virtual std::any visitReturnStmt(const Return* stmt) = 0;
     virtual std::any visitVarStmt(const Var* stmt) = 0;
     virtual std::any visitWhileStmt(const While* stmt) = 0;
 };

@@ -1,13 +1,13 @@
+#include <lox.hpp>
+#include <scanner.hpp>
+#include <alias.hpp>
+#include <parser.hpp>
+#include <ast_printer.hpp>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
-
-#include <lox.hpp>
-#include <scanner.hpp>
-#include <parser.hpp>
-#include <ast_printer.hpp>
 
 bool HAD_ERROR = false;
 bool HAD_RUNTIME_ERROR = false;
@@ -25,16 +25,25 @@ void Lox::run(std::string source)
     auto tokens = scanner.scanTokens();
 
     Parser parser{ std::move(tokens) };
-    std::vector<stmt::Stmt*> statements = parser.parse();
+    VecStmt statements = parser.parse();
 
     if (HAD_ERROR)
     {
         return;
     }
 
+#if VERBOSE_DEBUG
+    std::cout << ">>>>> VALIDATING PARSE <<<<<" << std::endl;
+
+    AstPrinter printer;
+    printer.printAll(statements);
+
+    std::cout << ">>>>> EXECUTION <<<<<" << std::endl;
+#endif
+
     Lox::interpreter.interpret(statements);
 
-    // // top down clean up of statements
+    // top down clean up of statements
     for (auto statement : statements)
     {
         if (statement)
@@ -134,6 +143,6 @@ void Lox::error(Token* token, std::string message)
 
 void Lox::runtimeError(RuntimeError error)
 {
-    std::cout << error.getMessage() + "\n[line " + std::to_string(error.getToken()->getLine()) +
-        "]";
+    std::cout << error.getMessage() + "\n[line " + std::to_string(error.getToken()->getLine()) + "]"
+              << std::endl;
 }

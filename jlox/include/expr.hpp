@@ -3,6 +3,9 @@
 #include <token.hpp>
 
 #include <any>
+#include <vector>
+
+using std::vector;
 
 namespace expr
 {
@@ -33,6 +36,19 @@ class Binary : public Expr
     const Expr* left;
     const Token* op;
     const Expr* right;
+};
+
+class Call : public Expr
+{
+  public:
+    Call(Expr* callee, Token* paren, vector<Expr*>* arguments);
+    ~Call() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* callee;
+    const Token* paren;
+    const vector<Expr*>* arguments;
 };
 
 class Assign : public Expr
@@ -109,6 +125,7 @@ class Visitor
 {
   public:
     virtual std::any visitBinaryExpr(const Binary* expr) = 0;
+    virtual std::any visitCallExpr(const Call* expr) = 0;
     virtual std::any visitAssignExpr(const Assign* expr) = 0;
     virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;

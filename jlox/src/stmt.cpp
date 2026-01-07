@@ -56,6 +56,34 @@ std::any If::accept(Visitor* visitor) const
     return visitor->visitIfStmt(this);
 }
 
+Function::Function(Token* name, vector<Token*>* params, vector<Stmt*>* body)
+  : name{ name }
+  , params{ params }
+  , body{ body }
+{
+}
+
+Function::~Function()
+{
+    if (name)
+    {
+        delete name;
+    }
+    if (params)
+    {
+        delete params;
+    }
+    if (body)
+    {
+        delete body;
+    }
+}
+
+std::any Function::accept(Visitor* visitor) const
+{
+    return visitor->visitFunctionStmt(this);
+}
+
 Block::Block(vector<Stmt*>* statements)
   : statements{ statements }
 {
@@ -65,14 +93,6 @@ Block::~Block()
 {
     if (statements)
     {
-        for (auto stmt : *statements)
-        {
-            if (stmt)
-            {
-                delete stmt;
-            }
-        }
-
         delete statements;
     }
 }
@@ -98,6 +118,29 @@ Print::~Print()
 std::any Print::accept(Visitor* visitor) const
 {
     return visitor->visitPrintStmt(this);
+}
+
+Return::Return(Token* keyword, Expr* value)
+  : keyword{ keyword }
+  , value{ value }
+{
+}
+
+Return::~Return()
+{
+    if (keyword)
+    {
+        delete keyword;
+    }
+    if (value)
+    {
+        delete value;
+    }
+}
+
+std::any Return::accept(Visitor* visitor) const
+{
+    return visitor->visitReturnStmt(this);
 }
 
 Var::Var(Token* name, Expr* initializer)

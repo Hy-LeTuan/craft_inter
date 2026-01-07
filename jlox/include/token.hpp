@@ -21,6 +21,7 @@ class Token
     LiteralValue* getLiteral() const;
     std::string getLiteralAsString() const;
     int getLine() const;
+	Token* clone() const;
 
     static std::string displayType(const TokenType token);
     static std::string displayLiteral(LiteralValue literal);

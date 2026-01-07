@@ -2,8 +2,9 @@
 
 #include <interpreter.hpp>
 #include <runtime_error.hpp>
-#include <string>
 #include <token.hpp>
+
+#include <string>
 
 extern bool HAD_ERROR;
 extern bool HAD_RUNTIME_ERROR;

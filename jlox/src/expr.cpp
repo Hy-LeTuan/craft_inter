@@ -38,6 +38,34 @@ std::any Binary::accept(Visitor* visitor) const
     return visitor->visitBinaryExpr(this);
 }
 
+Call::Call(Expr* callee, Token* paren, vector<Expr*>* arguments)
+  : callee{ callee }
+  , paren{ paren }
+  , arguments{ arguments }
+{
+}
+
+Call::~Call()
+{
+    if (callee)
+    {
+        delete callee;
+    }
+    if (paren)
+    {
+        delete paren;
+    }
+    if (arguments)
+    {
+        delete arguments;
+    }
+}
+
+std::any Call::accept(Visitor* visitor) const
+{
+    return visitor->visitCallExpr(this);
+}
+
 Assign::Assign(Token* name, Expr* value)
   : name{ name }
   , value{ value }

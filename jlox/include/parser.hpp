@@ -1,13 +1,10 @@
 #pragma once
 
-#include <stmt.hpp>
-#include <exception>
 #include <token.hpp>
-#include <expr.hpp>
+#include <alias.hpp>
 
 #include <vector>
-
-using VecStmt = std::vector<stmt::Stmt*>;
+#include <exception>
 
 class ParseError : public std::exception
 {
@@ -26,8 +23,10 @@ class Parser
     std::vector<Token*> tokens;
 
     stmt::Stmt* declaration();
+    stmt::Stmt* function(std::string kind);
     stmt::Stmt* varDeclaration();
     stmt::Stmt* statement();
+	stmt::Stmt* returnStatement();
     stmt::Stmt* whileStatement();
     stmt::Stmt* forStatement();
     stmt::Stmt* ifStatement();
@@ -44,6 +43,8 @@ class Parser
     expr::Expr* term();
     expr::Expr* factor();
     expr::Expr* unary();
+    expr::Expr* call();
+    expr::Expr* finishCall(expr::Expr* expr);
     expr::Expr* primary();
 
     template<typename... T>

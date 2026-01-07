@@ -1,7 +1,6 @@
 from io import TextIOWrapper
 import sys
 
-
 def declareVisitor(file: TextIOWrapper, baseName: str, types: list[str]):
     _ = file.write(f"class Visitor\n")
     _ = file.write(f"{{\n")
@@ -85,15 +84,14 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
 
     _ = headerFile.write("\n")
     _ = headerFile.write("#include <any>\n")
-    if baseName.lower() != "expr":
-        _ = headerFile.write("#include <vector>\n")
+    _ = headerFile.write("#include <vector>\n")
 
     _ = headerFile.write("\n")
 
+    _ = headerFile.write("using std::vector;\n")
     if baseName.lower() != "expr":
         _ = headerFile.write("using expr::Expr;\n")
-        _ = headerFile.write("using std::vector;\n")
-        _ = headerFile.write("\n")
+    _ = headerFile.write("\n")
 
     # open namespace
     _ = headerFile.write(f"namespace {baseName.lower()}\n")
@@ -169,6 +167,7 @@ def main():
 
     # defineAst(outputDir, "Expr", [
     #     "Binary   : Expr* left, Token* op, Expr* right",
+    #     "Call : Expr* callee, Token* paren, vector<Expr*>* arguments",
     #     "Assign: Token* name, Expr* value",
     #     "Grouping : Expr* expression",
     #     "Literal  : LiteralValue* value",
@@ -180,8 +179,10 @@ def main():
     defineAst(outputDir, "Stmt", [
         "Expression : Expr* expression",
         "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
+        "Function : Token* name, vector<Token*>* params, vector<Stmt*>* body",
         "Block : vector<Stmt*>* statements",
         "Print      : Expr* expression",
+        "Return : Token* keyword, Expr* value",
         "Var        : Token* name, Expr* initializer",
         "While        : Expr* condition, Stmt* body"
     ])

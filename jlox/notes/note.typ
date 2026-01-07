@@ -51,14 +51,38 @@ For Lox, I think that it is good to have support for infinity, negative infinity
 
 === 3. What does the following program do?
 
-The following program prints out `3` because the `a` inside the scope is overriding the global `a`, but the assignment expression was evaluated first before `a` was inserted into the scoped environment. This behavior is supported through the shadowing mechanism in Rust, but leads to undefined behavior in languages like C++, C, and straigt up error in Java, Javascript and Python. Even though C++ and C does allow variable shadowing for variables of different scopes, since the variable declaration is processed before the assignment expression is evaluated in these languages, the `a` in `a = a + 1` refers to the new variable being declared, and the new `a` has not yet been assigned a value, which leads to undefined behaviors. In Java and Javascript, this leads to an error since they don't support variable shadowing. Python is a special case, since there's no clean way to achieve this  lexical scoping without an additoinal statement, but if we were to put this into a function
+The following program prints out `3` because the `a` inside the scope is overriding the global `a`, but the assignment expression was evaluated first before `a` was inserted into the scoped environment. This behavior is supported through the shadowing mechanism in Rust, but leads to undefined behavior in languages like C++, C, and straigt up error in Java, Javascript and Python. Even though C++ and C does allow variable shadowing for variables of different scopes, since the variable declaration is processed before the assignment expression is evaluated in these languages, the `a` in `a = a + 1` refers to the new variable being declared, and the new `a` has not yet been assigned a value, which leads to undefined behaviors. In Java and Javascript, this leads to an error since they don't support variable shadowing. Python is a special case, since there's no clean way to achieve this  lexical scoping without additional statements, but if we were to put a similar code into a function
 
 ```python
-a = 1
+global a = 1
 def func():
+  global a
   a = a + 1
 func()
 ```
 
 then Python will report that a is accessed before it's initialized, for reasons similar to C and C++.
 
+== 9. Control Flow
+
+=== 1. A few chapters from now, when Lox supports first-class functions and dynamic dispatch, we technically won’t need branching statements built into the language. Show how conditional execution can be implemented in terms of those. Name a language that uses this technique for its control flow.
+
+First clss functions and dynamic dispatch can be used to replace control flow by offloading the correct function call to the dispatcher at runtime through common function pointers, first class functions or interfaces. For example, a piece of code like 
+
+```cpp
+if (condition) {
+  op1();
+} else {
+  op2();
+}
+```
+
+can be rewritten to remove any branching statements
+
+```cpp
+statements = {op1, op2};
+op = statements[condition];
+op();
+```
+
+provided that `op1` and `op2` share similarities that would enable dynamic dispatch, i.e sharing the same base class, sharing the same signature etc... Another way to avoid branching logic is to do everything through message sending, similar to Smalltalk. In Smalltalk, every equality evaluates to a Boolean object. Then, we send the message `ifTrue` and `ifElse` to the Boolean object. Upon receiving the message, the Boolean object uses dynamic dispatch to execute the correct branch, since the Boolean object is an abstract class for True and False, each with a different implementation upon receiving the `ifTrue` / `ifFalse` message.

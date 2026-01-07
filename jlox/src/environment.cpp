@@ -1,6 +1,20 @@
 #include <runtime_error.hpp>
 #include <environment.hpp>
 
+#if ENVIRONMENT_DEBUG
+#include <iostream>
+
+void Environment::display(std::string name)
+{
+    std::cout << ">>>>> displaying " + name + " <<<<<" << std::endl;
+
+    for (auto& p : values)
+    {
+        std::cout << "variable: " << p.first << std::endl;
+    }
+}
+#endif
+
 Environment::Environment()
   : enclosing{ nullptr }
 {

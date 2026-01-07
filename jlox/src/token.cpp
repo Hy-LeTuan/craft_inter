@@ -20,6 +20,12 @@ int Token::getLine() const
     return line;
 }
 
+Token* Token::clone() const
+{
+    Token* res = new Token{ this->type, this->lexeme, this->literal, this->line };
+    return res;
+}
+
 Token::Token(TokenType type, std::string lexeme, LiteralValue literal, int line)
   : type{ type }
   , lexeme{ lexeme }

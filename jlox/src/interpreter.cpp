@@ -1,17 +1,51 @@
-#include <ast_printer.hpp>
-#include <object.hpp>
-#include <runtime_error.hpp>
 #include <interpreter.hpp>
+
+#include <runtime_error.hpp>
+#include <return.hpp>
+
+#include <object_utils.hpp>
 #include <token_type.hpp>
+#include <ast_printer.hpp>
+
+#include <lox_callable.hpp>
+#include <lox_function.hpp>
+
 #include <lox.hpp>
 
-#include <iostream>
 #include <iomanip>
 #include <ios>
+#include <string>
+#include <chrono>
+
+struct ClockCallable : public LoxCallable
+{
+    Object call(Interpreter* interpreter, std::vector<Object>* arguments) override
+    {
+        auto t = std::chrono::system_clock::now();
+        double milliseconds =
+          std::chrono::duration_cast<std::chrono::milliseconds>(t.time_since_epoch()).count() /
+          1000.0;
+
+        return milliseconds;
+    }
+
+    int arity() override
+    {
+        return 0;
+    }
+
+    std::string toString() override
+    {
+        return "<native fn>";
+    }
+};
 
 Interpreter::Interpreter()
-  : environment{ new Environment() }
 {
+    globals = new Environment();
+    environment = globals;
+
+    globals->define("clock", static_cast<LoxCallable*>(new ClockCallable()));
 }
 
 Interpreter::~Interpreter()
@@ -45,6 +79,14 @@ Object Interpreter::visitIfStmt(const stmt::If* stmt)
     return nullptr;
 }
 
+Object Interpreter::visitFunctionStmt(const stmt::Function* stmt)
+{
+    LoxFunction* function = new LoxFunction(stmt);
+    environment->define(stmt->name->getLexeme(), static_cast<LoxCallable*>(function));
+
+    return nullptr;
+}
+
 Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
 {
 
@@ -67,10 +109,12 @@ void Interpreter::executeBlock(
             execute(stmt);
         }
     }
-    catch (RuntimeError e)
+    catch (...)
     {
         this->environment = previous;
-        throw e;
+        delete child_environment;
+
+        throw;
     }
 
     this->environment = previous;
@@ -99,16 +143,29 @@ Object Interpreter::visitPrintStmt(const stmt::Print* stmt)
     return nullptr;
 }
 
+Object Interpreter::visitReturnStmt(const stmt::Return* stmt)
+{
+    Object value = nullptr;
+
+    if (stmt->value)
+    {
+        value = evaluate(stmt->value);
+    }
+
+    throw Return{ value };
+}
+
 Object Interpreter::visitVarStmt(const stmt::Var* stmt)
 {
     Object value = nullptr;
 
-    if (stmt->initializer != nullptr)
+    if (stmt->initializer)
     {
         value = evaluate(stmt->initializer);
     }
 
     environment->define(stmt->name->getLexeme(), value);
+
     return nullptr;
 }
 
@@ -136,7 +193,7 @@ Object Interpreter::visitLogicalExpr(const expr::Logical* expr)
 
 Object Interpreter::visitVariableExpr(const expr::Variable* expr)
 {
-    return environment->get(expr->name);
+    return this->environment->get(expr->name);
 }
 
 Object Interpreter::visitAssignExpr(const expr::Assign* expr)
@@ -254,6 +311,34 @@ Object Interpreter::visitBinaryExpr(const expr::Binary* expr)
     return nullptr;
 }
 
+Object Interpreter::visitCallExpr(const expr::Call* expr)
+{
+    Object callee = evaluate(expr->callee);
+
+    std::vector<Object>* arguments = new std::vector<Object>;
+
+    for (auto argument : *expr->arguments)
+    {
+        arguments->push_back(evaluate(argument));
+    }
+
+    if (!ObjectParser::isCallable(callee))
+    {
+        throw RuntimeError(expr->paren, "Can only call functions and classes.");
+    }
+
+    LoxCallable* function = ObjectGetCallable(callee);
+
+    if (arguments->size() != function->arity())
+    {
+        throw RuntimeError(expr->paren,
+          "Expected " + std::to_string(function->arity()) + " arguments but got " +
+            std::to_string(arguments->size()) + ".");
+    }
+
+    return function->call(this, arguments);
+}
+
 Object Interpreter::evaluate(const expr::Expr* expr)
 {
     return expr->accept(this);
@@ -342,7 +427,6 @@ void Interpreter::checkNumberOperands(const Token* op, Object& left, Object& rig
     {
         return;
     }
-
     throw RuntimeError(op, "Operands must be numbers.");
 }
 
