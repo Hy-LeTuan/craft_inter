@@ -25,13 +25,14 @@ class AstPrinter
     Object visitIfStmt(const stmt::If* stmt) override;
     Object visitFunctionStmt(const stmt::Function* stmt) override;
     Object visitBlockStmt(const stmt::Block* stmt) override;
+    Object visitClassStmt(const stmt::Class* stmt) override;
     Object visitPrintStmt(const stmt::Print* stmt) override;
     Object visitReturnStmt(const stmt::Return* stmt) override;
     Object visitVarStmt(const stmt::Var* stmt) override;
     Object visitWhileStmt(const stmt::While* stmt) override;
 
     void print(const stmt::Stmt* stmt);
-	void printAll(const VecStmt &statements);
+    void printAll(const VecStmt& statements);
     std::string stringify(const stmt::Stmt* stmt);
 
   private:

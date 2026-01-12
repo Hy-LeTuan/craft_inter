@@ -3,12 +3,14 @@
 #include <runtime_error.hpp>
 #include <return.hpp>
 
+#include <lox_instance.hpp>
 #include <object_utils.hpp>
 #include <token_type.hpp>
 #include <ast_printer.hpp>
 
 #include <lox_callable.hpp>
 #include <lox_function.hpp>
+#include <lox_class.hpp>
 
 #include <lox.hpp>
 
@@ -91,6 +93,16 @@ Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
 {
 
     executeBlock(stmt->statements, new Environment{ environment });
+
+    return nullptr;
+}
+
+Object Interpreter::visitClassStmt(const stmt::Class* stmt)
+{
+    environment->define(stmt->name->getLexeme(), nullptr);
+    LoxClass* klass = new LoxClass{ stmt->name->getLexeme() };
+
+    environment->assign(stmt->name, static_cast<LoxCallable*>(klass));
 
     return nullptr;
 }
@@ -347,6 +359,18 @@ Object Interpreter::visitCallExpr(const expr::Call* expr)
     return function->call(this, arguments);
 }
 
+Object Interpreter::visitGetExpr(const expr::Get* expr)
+{
+    Object object = evaluate(expr->object);
+
+    if (ObjectParser::isInstance(object))
+    {
+        return ObjectGetInstance(object)->get(expr->name);
+    }
+
+    throw RuntimeError(expr->name, "Only instances have properties.");
+}
+
 Object Interpreter::evaluate(const expr::Expr* expr)
 {
     return expr->accept(this);
@@ -414,6 +438,26 @@ std::string Interpreter::stringify(Object& object)
     else if (ObjectParser::isString(object))
     {
         return ObjectGetString(object);
+    }
+    else if (ObjectParser::isCallable(object))
+    {
+        LoxCallable* f = ObjectGetCallable(object);
+        return f->toString();
+    }
+    else if (ObjectParser::isFunction(object))
+    {
+        LoxFunction* f = ObjectGetFunction(object);
+        return f->toString();
+    }
+    else if (ObjectParser::isClass(object))
+    {
+        LoxClass* c = ObjectGetClass(object);
+        return c->toString();
+    }
+    else if (ObjectParser::isInstance(object))
+    {
+        LoxInstance* i = ObjectGetInstance(object);
+        return i->toString();
     }
 
     return "";

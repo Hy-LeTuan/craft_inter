@@ -23,6 +23,7 @@ class Parser
     std::vector<Token*> tokens;
 
     stmt::Stmt* declaration();
+	stmt::Stmt* classDeclaration();
     stmt::Stmt* function(std::string kind);
     stmt::Stmt* varDeclaration();
     stmt::Stmt* statement();

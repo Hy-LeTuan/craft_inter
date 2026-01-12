@@ -22,6 +22,8 @@ set(CLOX_SOURCES
     src/lox_function.cpp;
 	src/return.cpp;
 	src/resolver.cpp;
+	src/lox_class.cpp;
+	src/lox_instance.cpp;
 )
 
 option(VERBOSE_DEBUG_OPTION "Enable verbose mode" OFF)

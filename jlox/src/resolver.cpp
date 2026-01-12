@@ -48,6 +48,14 @@ Object Resolver::visitBlockStmt(const stmt::Block* stmt)
     return nullptr;
 }
 
+Object Resolver::visitClassStmt(const stmt::Class* stmt)
+{
+    declare(stmt->name);
+    define(stmt->name);
+
+    return nullptr;
+}
+
 Object Resolver::visitPrintStmt(const stmt::Print* stmt)
 {
     resolve(stmt->expression);
@@ -114,6 +122,12 @@ Object Resolver::visitCallExpr(const expr::Call* expr)
         resolve(arg);
     }
 
+    return nullptr;
+}
+
+Object Resolver::visitGetExpr(const expr::Get* expr)
+{
+    resolve(expr->object);
     return nullptr;
 }
 

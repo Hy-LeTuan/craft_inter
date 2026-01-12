@@ -75,6 +75,18 @@ class Block : public Stmt
     const vector<Stmt*>* statements;
 };
 
+class Class : public Stmt
+{
+  public:
+    Class(Token* name, vector<Stmt*>* methods);
+    ~Class() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* name;
+    const vector<Stmt*>* methods;
+};
+
 class Print : public Stmt
 {
   public:
@@ -129,6 +141,7 @@ class Visitor
     virtual std::any visitIfStmt(const If* stmt) = 0;
     virtual std::any visitFunctionStmt(const Function* stmt) = 0;
     virtual std::any visitBlockStmt(const Block* stmt) = 0;
+    virtual std::any visitClassStmt(const Class* stmt) = 0;
     virtual std::any visitPrintStmt(const Print* stmt) = 0;
     virtual std::any visitReturnStmt(const Return* stmt) = 0;
     virtual std::any visitVarStmt(const Var* stmt) = 0;

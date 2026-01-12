@@ -17,6 +17,7 @@ class Interpreter
     Object visitIfStmt(const stmt::If* stmt) override;
     Object visitFunctionStmt(const stmt::Function* stmt) override;
     Object visitBlockStmt(const stmt::Block* stmt) override;
+    Object visitClassStmt(const stmt::Class* stmt) override;
     Object visitPrintStmt(const stmt::Print* stmt) override;
     Object visitReturnStmt(const stmt::Return* stmt) override;
     Object visitVarStmt(const stmt::Var* stmt) override;
@@ -24,6 +25,7 @@ class Interpreter
 
     Object visitBinaryExpr(const expr::Binary* expr) override;
     Object visitCallExpr(const expr::Call* expr) override;
+    Object visitGetExpr(const expr::Get* expr) override;
     Object visitAssignExpr(const expr::Assign* expr) override;
     Object visitGroupingExpr(const expr::Grouping* expr) override;
     Object visitLiteralExpr(const expr::Literal* expr) override;

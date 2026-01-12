@@ -102,6 +102,29 @@ std::any Block::accept(Visitor* visitor) const
     return visitor->visitBlockStmt(this);
 }
 
+Class::Class(Token* name, vector<Stmt*>* methods)
+  : name{ name }
+  , methods{ methods }
+{
+}
+
+Class::~Class()
+{
+    if (name)
+    {
+        delete name;
+    }
+    if (methods)
+    {
+        delete methods;
+    }
+}
+
+std::any Class::accept(Visitor* visitor) const
+{
+    return visitor->visitClassStmt(this);
+}
+
 Print::Print(Expr* expression)
   : expression{ expression }
 {

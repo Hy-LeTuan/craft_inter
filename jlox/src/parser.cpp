@@ -1,3 +1,4 @@
+#include <alias.hpp>
 #include <parser.hpp>
 
 #include <stmt.hpp>
@@ -35,6 +36,11 @@ stmt::Stmt* Parser::declaration()
 {
     try
     {
+        if (match(TokenType::CLASS))
+        {
+            freeUnownedToken();
+            return classDeclaration();
+        }
         if (match(TokenType::FUN))
         {
             freeUnownedToken();
@@ -55,6 +61,23 @@ stmt::Stmt* Parser::declaration()
         synchronize();
         return nullptr;
     }
+}
+
+stmt::Stmt* Parser::classDeclaration()
+{
+    Token* name = consume(TokenType::IDENTIFIER, "Expect class name.");
+    consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+    VecStmt* methods = new VecStmt{};
+
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd())
+    {
+        methods->push_back(function("method"));
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after class declaration");
+
+    return new stmt::Class(name, methods);
 }
 
 stmt::Stmt* Parser::function(std::string kind)
@@ -452,6 +475,12 @@ expr::Expr* Parser::call()
         {
             freeUnownedToken();
             expr = finishCall(expr);
+        }
+        else if (match(TokenType::DOT))
+        {
+            freeUnownedToken();
+            Token* name = consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+            expr = new expr::Get(expr, name);
         }
         else
         {

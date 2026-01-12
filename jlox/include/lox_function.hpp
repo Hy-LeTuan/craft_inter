@@ -14,5 +14,5 @@ class LoxFunction : public LoxCallable
 
   private:
     const stmt::Function* declaration;
-	Environment* closure;
+    Environment* closure;
 };

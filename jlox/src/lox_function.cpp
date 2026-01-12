@@ -1,5 +1,5 @@
-#include <return.hpp>
 #include <lox_function.hpp>
+#include <return.hpp>
 
 LoxFunction::LoxFunction(const stmt::Function* declaration, Environment* closure)
   : declaration{ declaration }

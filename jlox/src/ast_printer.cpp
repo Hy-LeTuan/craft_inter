@@ -63,6 +63,12 @@ Object AstPrinter::visitBlockStmt(const stmt::Block* stmt)
     return message;
 }
 
+Object AstPrinter::visitClassStmt(const stmt::Class* stmt)
+{
+    std::string name = stmt->name->getLexeme();
+    return "CLASS STATEMENT: [" + name + "]";
+}
+
 Object AstPrinter::visitPrintStmt(const stmt::Print* stmt)
 {
     return "PRINT STATEMENT: " + ObjectGetString(stmt->expression->accept(this));
@@ -141,7 +147,7 @@ Object AstPrinter::visitGroupingExpr(const expr::Grouping* expr)
 
 Object AstPrinter::visitLiteralExpr(const expr::Literal* expr)
 {
-    return Token::displayLiteral(*expr->value);
+    return "Literal: " + Token::displayLiteral(*expr->value);
 }
 
 Object AstPrinter::visitUnaryExpr(const expr::Unary* expr)
@@ -156,7 +162,7 @@ Object AstPrinter::visitLogicalExpr(const expr::Logical* expr)
 
 Object AstPrinter::visitVariableExpr(const expr::Variable* expr)
 {
-    return "`" + expr->name->getLexeme() + "`";
+    return "`VAR: " + expr->name->getLexeme() + "`";
 }
 
 std::string AstPrinter::stringify_block(const std::vector<stmt::Stmt*>* statements)

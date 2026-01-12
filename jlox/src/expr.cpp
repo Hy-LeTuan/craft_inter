@@ -66,6 +66,29 @@ std::any Call::accept(Visitor* visitor) const
     return visitor->visitCallExpr(this);
 }
 
+Get::Get(Expr* object, Token* name)
+  : object{ object }
+  , name{ name }
+{
+}
+
+Get::~Get()
+{
+    if (object)
+    {
+        delete object;
+    }
+    if (name)
+    {
+        delete name;
+    }
+}
+
+std::any Get::accept(Visitor* visitor) const
+{
+    return visitor->visitGetExpr(this);
+}
+
 Assign::Assign(Token* name, Expr* value)
   : name{ name }
   , value{ value }

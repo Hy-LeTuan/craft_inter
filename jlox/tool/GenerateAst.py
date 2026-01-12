@@ -165,27 +165,29 @@ def main():
 
     outputDir: str = sys.argv[1]
 
-    # defineAst(outputDir, "Expr", [
-    #     "Binary   : Expr* left, Token* op, Expr* right",
-    #     "Call : Expr* callee, Token* paren, vector<Expr*>* arguments",
-    #     "Assign: Token* name, Expr* value",
-    #     "Grouping : Expr* expression",
-    #     "Literal  : LiteralValue* value",
-    #     "Logical : Expr* left, Token* op, Expr* right",
-    #     "Unary    : Token* op, Expr* right",
-    #     "Variable : Token* name"
-    # ])
-
-    defineAst(outputDir, "Stmt", [
-        "Expression : Expr* expression",
-        "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
-        "Function : Token* name, vector<Token*>* params, vector<Stmt*>* body",
-        "Block : vector<Stmt*>* statements",
-        "Print      : Expr* expression",
-        "Return : Token* keyword, Expr* value",
-        "Var        : Token* name, Expr* initializer",
-        "While        : Expr* condition, Stmt* body"
+    defineAst(outputDir, "Expr", [
+        "Binary   : Expr* left, Token* op, Expr* right",
+        "Call : Expr* callee, Token* paren, vector<Expr*>* arguments",
+        "Get : Expr* object, Token* name",
+        "Assign: Token* name, Expr* value",
+        "Grouping : Expr* expression",
+        "Literal  : LiteralValue* value",
+        "Logical : Expr* left, Token* op, Expr* right",
+        "Unary    : Token* op, Expr* right",
+        "Variable : Token* name"
     ])
+
+    # defineAst(outputDir, "Stmt", [
+    #     "Expression : Expr* expression",
+    #     "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
+    #     "Function : Token* name, vector<Token*>* params, vector<Stmt*>* body",
+    #     "Block : vector<Stmt*>* statements",
+    #     "Class : Token* name, vector<Stmt*>* methods",
+    #     "Print      : Expr* expression",
+    #     "Return : Token* keyword, Expr* value",
+    #     "Var        : Token* name, Expr* initializer",
+    #     "While        : Expr* condition, Stmt* body"
+    # ])
 
 
 if __name__ == "__main__":

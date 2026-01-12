@@ -51,6 +51,18 @@ class Call : public Expr
     const vector<Expr*>* arguments;
 };
 
+class Get : public Expr
+{
+  public:
+    Get(Expr* object, Token* name);
+    ~Get() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* object;
+    const Token* name;
+};
+
 class Assign : public Expr
 {
   public:
@@ -126,6 +138,7 @@ class Visitor
   public:
     virtual std::any visitBinaryExpr(const Binary* expr) = 0;
     virtual std::any visitCallExpr(const Call* expr) = 0;
+    virtual std::any visitGetExpr(const Get* expr) = 0;
     virtual std::any visitAssignExpr(const Assign* expr) = 0;
     virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;
