@@ -1,8 +1,9 @@
 #include <return.hpp>
 #include <lox_function.hpp>
 
-LoxFunction::LoxFunction(const stmt::Function* declaration)
+LoxFunction::LoxFunction(const stmt::Function* declaration, Environment* closure)
   : declaration{ declaration }
+  , closure{ closure }
 {
 }
 
@@ -16,7 +17,7 @@ LoxFunction::~LoxFunction()
 
 Object LoxFunction::call(Interpreter* interpreter, std::vector<Object>* arguments)
 {
-    Environment* environment = new Environment(interpreter->globals);
+    Environment* environment = new Environment(closure);
 
     for (int i = 0; i < declaration->params->size(); i++)
     {

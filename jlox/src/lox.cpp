@@ -1,3 +1,4 @@
+#include "resolver.hpp"
 #include <lox.hpp>
 #include <scanner.hpp>
 #include <alias.hpp>
@@ -38,12 +39,22 @@ void Lox::run(std::string source)
     AstPrinter printer;
     printer.printAll(statements);
 
+    std::cout << ">>>>> STATIC ANALYSIS <<<<<" << std::endl;
+#endif
+
+    Resolver resolver{ &interpreter };
+    resolver.resolve(&statements);
+
+    if (HAD_ERROR)
+    {
+        return;
+    }
+
+#if VERBOSE_DEBUG
     std::cout << ">>>>> EXECUTION <<<<<" << std::endl;
 #endif
 
     Lox::interpreter.interpret(statements);
-
-    // top down clean up of statements
     for (auto statement : statements)
     {
         if (statement)

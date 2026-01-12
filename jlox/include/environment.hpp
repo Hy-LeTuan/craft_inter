@@ -13,13 +13,17 @@ class Environment
 
     void define(std::string name, Object value);
     Object get(const Token* name) const;
+    Object getAt(int distance, std::string name);
+
     void assign(const Token* name, Object value);
+    void assignAt(int distance, const Token* name, Object value);
 
 #if ENVIRONMENT_DEBUG
     void display(std::string name);
 #endif
 
   private:
+	Environment* ancestor(int distance);
     std::unordered_map<std::string, Object> values;
     Environment* enclosing;
 };

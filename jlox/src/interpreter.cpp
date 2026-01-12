@@ -81,7 +81,7 @@ Object Interpreter::visitIfStmt(const stmt::If* stmt)
 
 Object Interpreter::visitFunctionStmt(const stmt::Function* stmt)
 {
-    LoxFunction* function = new LoxFunction(stmt);
+    LoxFunction* function = new LoxFunction(stmt, environment);
     environment->define(stmt->name->getLexeme(), static_cast<LoxCallable*>(function));
 
     return nullptr;
@@ -112,13 +112,10 @@ void Interpreter::executeBlock(
     catch (...)
     {
         this->environment = previous;
-        delete child_environment;
-
         throw;
     }
 
     this->environment = previous;
-    delete child_environment;
 }
 
 Object Interpreter::visitExpressionStmt(const stmt::Expression* stmt)
@@ -193,13 +190,24 @@ Object Interpreter::visitLogicalExpr(const expr::Logical* expr)
 
 Object Interpreter::visitVariableExpr(const expr::Variable* expr)
 {
-    return this->environment->get(expr->name);
+    return lookUpVariable(expr->name, expr);
 }
 
 Object Interpreter::visitAssignExpr(const expr::Assign* expr)
 {
     Object value = evaluate(expr->value);
-    environment->assign(expr->name, value);
+
+    auto it = locals.find(expr);
+
+    if (it != locals.end())
+    {
+        int distance = it->second;
+        environment->assignAt(distance, expr->name, value);
+    }
+    else
+    {
+        globals->assign(expr->name, value);
+    }
 
     return value;
 }
@@ -448,4 +456,24 @@ void Interpreter::interpret(std::vector<stmt::Stmt*> statements)
 void Interpreter::execute(const stmt::Stmt* statement)
 {
     statement->accept(this);
+}
+
+void Interpreter::resolve(const expr::Expr* expression, int depth)
+{
+    locals.insert_or_assign(expression, depth);
+}
+
+Object Interpreter::lookUpVariable(const Token* name, const expr::Variable* expr)
+{
+    auto it = locals.find(expr);
+
+    if (it != locals.end())
+    {
+        int distance = it->second;
+        return environment->getAt(distance, name->getLexeme());
+    }
+    else
+    {
+        return globals->get(name);
+    }
 }
