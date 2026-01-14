@@ -1,7 +1,6 @@
 #include <lox_instance.hpp>
 
 #include <runtime_error.hpp>
-#include <iostream>
 
 LoxInstance::LoxInstance(LoxClass* klass)
   : klass{ klass }
@@ -24,7 +23,6 @@ Object LoxInstance::get(const Token* name) const
 
     if (method)
     {
-        std::cout << "method is bound" << std::endl;
         return method->bind(this);
     }
 

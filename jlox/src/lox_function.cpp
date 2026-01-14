@@ -2,9 +2,11 @@
 
 #include <return.hpp>
 
-LoxFunction::LoxFunction(const stmt::Function* declaration, Environment* closure)
+LoxFunction::LoxFunction(
+  const stmt::Function* declaration, Environment* closure, bool isInitializer)
   : declaration{ declaration }
   , closure{ closure }
+  , isInitializer{ isInitializer }
 {
 }
 
@@ -31,7 +33,17 @@ Object LoxFunction::call(Interpreter* interpreter, std::vector<Object>* argument
     }
     catch (Return returnValue)
     {
+        if (isInitializer)
+        {
+            return closure->getAt(0, "this");
+        }
+
         return returnValue.getValue();
+    }
+
+    if (isInitializer)
+    {
+        return closure->getAt(0, "this");
     }
 
     return nullptr;
@@ -52,5 +64,5 @@ LoxFunction* LoxFunction::bind(const LoxInstance* instance)
     Environment* environment = new Environment{ closure };
     environment->define("this", const_cast<LoxInstance*>(instance));
 
-    return new LoxFunction(declaration, environment);
+    return new LoxFunction(declaration, environment, isInitializer);
 }

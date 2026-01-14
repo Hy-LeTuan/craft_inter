@@ -11,36 +11,13 @@
 #include <lox_callable.hpp>
 #include <lox_function.hpp>
 #include <lox_class.hpp>
+#include <clock_callable.hpp>
 
 #include <lox.hpp>
 
 #include <iomanip>
 #include <ios>
 #include <string>
-#include <chrono>
-
-struct ClockCallable : public LoxCallable
-{
-    Object call(Interpreter* interpreter, std::vector<Object>* arguments) override
-    {
-        auto t = std::chrono::system_clock::now();
-        double milliseconds =
-          std::chrono::duration_cast<std::chrono::milliseconds>(t.time_since_epoch()).count() /
-          1000.0;
-
-        return milliseconds;
-    }
-
-    int arity() override
-    {
-        return 0;
-    }
-
-    std::string toString() override
-    {
-        return "<native fn>";
-    }
-};
 
 Interpreter::Interpreter()
 {
@@ -106,8 +83,9 @@ Object Interpreter::visitClassStmt(const stmt::Class* stmt)
     for (auto method_base : *stmt->methods)
     {
         auto method = dynamic_cast<stmt::Function*>(method_base);
+        bool isInit = method->name->getLexeme() == "init";
 
-        LoxFunction* function = new LoxFunction(method, environment);
+        LoxFunction* function = new LoxFunction(method, environment, isInit);
 
         methods.insert_or_assign(method->name->getLexeme(), function);
     }
@@ -229,7 +207,6 @@ Object Interpreter::visitSetExpr(const expr::Set* expr)
 
 Object Interpreter::visitThisExpr(const expr::This* expr)
 {
-    std::cout << "visit this expression" << std::endl;
     return lookUpVariable(expr->keyword, expr);
 }
 
@@ -548,9 +525,7 @@ Object Interpreter::lookUpVariable(const Token* name, const expr::Expr* expr)
     if (it != locals.end())
     {
         int distance = it->second;
-        std::cout << "try getting variable: " << name->getLexeme() << std::endl;
         auto res = environment->getAt(distance, name->getLexeme());
-        std::cout << "successful in getting variable: " << name->getLexeme() << std::endl;
 
         return res;
     }

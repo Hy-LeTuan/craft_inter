@@ -13,7 +13,14 @@ enum class FunctionType
 {
     NONE,
     FUNCTION,
-    METHOD
+    INITIALIZER,
+    METHOD,
+};
+
+enum class ClassType
+{
+    NONE,
+    CLASS
 };
 
 class Resolver
@@ -67,4 +74,5 @@ class Resolver
     Interpreter* interpreter;
 
     FunctionType currentFunction = FunctionType::NONE;
+    ClassType currentClass = ClassType::NONE;
 };

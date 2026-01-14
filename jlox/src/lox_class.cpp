@@ -15,6 +15,13 @@ std::string LoxClass::toString()
 Object LoxClass::call(Interpreter* interpreter, std::vector<Object>* arguments)
 {
     LoxInstance* instance = new LoxInstance(this);
+    LoxFunction* initializer = findMethod("init");
+
+    if (initializer)
+    {
+        initializer->bind(instance)->call(interpreter, std::move(arguments));
+    }
+
     return instance;
 }
 
@@ -30,5 +37,12 @@ LoxFunction* LoxClass::findMethod(std::string name)
 
 int LoxClass::arity()
 {
-    return 0;
+    LoxFunction* initializer = findMethod("init");
+
+    if (!initializer)
+    {
+        return 0;
+    }
+
+    return initializer->arity();
 }

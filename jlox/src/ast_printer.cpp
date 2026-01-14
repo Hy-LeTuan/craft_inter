@@ -190,7 +190,7 @@ Object AstPrinter::visitSetExpr(const expr::Set* expr)
 
 Object AstPrinter::visitThisExpr(const expr::This* expr)
 {
-    return "`THIS`";
+    return std::string{ "`THIS`" };
 }
 
 Object AstPrinter::visitVariableExpr(const expr::Variable* expr)

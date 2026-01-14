@@ -51,6 +51,9 @@ Object Resolver::visitBlockStmt(const stmt::Block* stmt)
 
 Object Resolver::visitClassStmt(const stmt::Class* stmt)
 {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType::CLASS;
+
     declare(stmt->name);
     define(stmt->name);
 
@@ -58,13 +61,22 @@ Object Resolver::visitClassStmt(const stmt::Class* stmt)
 
     PEEK(scopes).insert_or_assign("this", true);
 
-    for (auto method : *stmt->methods)
+    for (auto method_base : *stmt->methods)
     {
+        stmt::Function* method = dynamic_cast<stmt::Function*>(method_base);
         FunctionType declaration = FunctionType::METHOD;
-        resolveFunction(dynamic_cast<stmt::Function*>(method), declaration);
+
+        if (method->name->getLexeme() == "init")
+        {
+            declaration = FunctionType::INITIALIZER;
+        }
+
+        resolveFunction(method, declaration);
     }
 
     endScope();
+
+    currentClass = enclosingClass;
 
     return nullptr;
 }
@@ -88,6 +100,12 @@ Object Resolver::visitReturnStmt(const stmt::Return* stmt)
             if (stmt->value)
             {
                 resolve(stmt->value);
+            }
+            break;
+        case FunctionType::INITIALIZER:
+            if (stmt->value)
+            {
+                Lox::error(stmt->keyword->clone(), "Can't return a value from an initializer.");
             }
             break;
     }
@@ -183,6 +201,12 @@ Object Resolver::visitSetExpr(const expr::Set* expr)
 
 Object Resolver::visitThisExpr(const expr::This* expr)
 {
+    if (currentClass == ClassType::NONE)
+    {
+        Lox::error(expr->keyword->clone(), "Can't use 'this' outside of a class.");
+        return nullptr;
+    }
+
     resolveLocal(expr, expr->keyword);
     return nullptr;
 }
