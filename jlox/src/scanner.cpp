@@ -195,7 +195,7 @@ void Scanner::string()
 {
     while (peek() != '"' && !isAtEnd())
     {
-        if (peek() != '\n')
+        if (peek() == '\n')
         {
             line++;
         }

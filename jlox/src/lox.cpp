@@ -143,12 +143,12 @@ void Lox::error(Token* token, std::string message)
     if (token->getType() == TokenType::__EOF__)
     {
         report(token->getLine(), " at end", message);
-        free(token);
+        delete token;
     }
     else
     {
         report(token->getLine(), " at '" + token->getLexeme() + "'", message);
-        free(token);
+        delete token;
     }
 }
 
