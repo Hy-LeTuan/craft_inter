@@ -7,6 +7,7 @@
 #include <vector>
 
 using expr::Expr;
+using expr::Variable;
 using std::vector;
 
 namespace stmt
@@ -78,12 +79,13 @@ class Block : public Stmt
 class Class : public Stmt
 {
   public:
-    Class(Token* name, vector<Stmt*>* methods);
+    Class(Token* name, Variable* superclass, vector<Stmt*>* methods);
     ~Class() override;
 
     std::any accept(Visitor* visitor) const override;
 
     const Token* name;
+    const Variable* superclass;
     const vector<Stmt*>* methods;
 };
 

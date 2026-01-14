@@ -91,6 +91,7 @@ def defineAst(outputDir: str, baseName: str, types: list[str]):
     _ = headerFile.write("using std::vector;\n")
     if baseName.lower() != "expr":
         _ = headerFile.write("using expr::Expr;\n")
+        _ = headerFile.write("using expr::Variable;\n")
     _ = headerFile.write("\n")
 
     # open namespace
@@ -174,6 +175,7 @@ def main():
         "Literal  : LiteralValue* value",
         "Logical : Expr* left, Token* op, Expr* right",
         "Set : Expr* object, Token* name, Expr* value",
+        "Super : Token* keyword, Token* method",
         "This : Token* keyword",
         "Unary    : Token* op, Expr* right",
         "Variable : Token* name"
@@ -184,7 +186,7 @@ def main():
     #     "If : Expr* condition, Stmt* thenBranch, Stmt* elseBranch",
     #     "Function : Token* name, vector<Token*>* params, vector<Stmt*>* body",
     #     "Block : vector<Stmt*>* statements",
-    #     "Class : Token* name, vector<Stmt*>* methods",
+    #     "Class : Token* name, Variable* superclass, vector<Stmt*>* methods",
     #     "Print      : Expr* expression",
     #     "Return : Token* keyword, Expr* value",
     #     "Var        : Token* name, Expr* initializer",

@@ -86,3 +86,7 @@ op();
 ```
 
 provided that `op1` and `op2` share similarities that would enable dynamic dispatch, i.e sharing the same base class, sharing the same signature etc... Another way to avoid branching logic is to do everything through message sending, similar to Smalltalk. In Smalltalk, every equality evaluates to a Boolean object. Then, we send the message `ifTrue` and `ifElse` to the Boolean object. Upon receiving the message, the Boolean object uses dynamic dispatch to execute the correct branch, since the Boolean object is an abstract class for True and False, each with a different implementation upon receiving the `ifTrue` / `ifFalse` message.
+
+== Class & Inheritance
+
+Binding `this` to methods happens when the instance retrieves the method definition stored on the class itself. This means it rebinds itself every time a method is called. Even if this method originates from another instance, `this` rebinds to whatever instance it is called from in runtime. 

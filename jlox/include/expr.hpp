@@ -123,6 +123,18 @@ class Set : public Expr
     const Expr* value;
 };
 
+class Super : public Expr
+{
+  public:
+    Super(Token* keyword, Token* method);
+    ~Super() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* keyword;
+    const Token* method;
+};
+
 class This : public Expr
 {
   public:
@@ -168,6 +180,7 @@ class Visitor
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;
     virtual std::any visitLogicalExpr(const Logical* expr) = 0;
     virtual std::any visitSetExpr(const Set* expr) = 0;
+    virtual std::any visitSuperExpr(const Super* expr) = 0;
     virtual std::any visitThisExpr(const This* expr) = 0;
     virtual std::any visitUnaryExpr(const Unary* expr) = 0;
     virtual std::any visitVariableExpr(const Variable* expr) = 0;

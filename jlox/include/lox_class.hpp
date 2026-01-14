@@ -8,7 +8,8 @@
 class LoxClass : public LoxCallable
 {
   public:
-    LoxClass(std::string name, std::unordered_map<std::string, LoxFunction*> methods);
+    LoxClass(std::string name, LoxClass* superclass,
+      std::unordered_map<std::string, LoxFunction*> methods);
 
     std::string toString() override;
     Object call(Interpreter* interpreter, std::vector<Object>* arguments) override;
@@ -19,4 +20,5 @@ class LoxClass : public LoxCallable
   private:
     std::unordered_map<std::string, LoxFunction*> methods;
     const std::string name;
+    LoxClass* superclass;
 };

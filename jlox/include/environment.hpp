@@ -18,12 +18,14 @@ class Environment
     void assign(const Token* name, Object value);
     void assignAt(int distance, const Token* name, Object value);
 
+    Environment* getEnclosing();
+
 #if ENVIRONMENT_DEBUG
     void display(std::string name);
 #endif
 
   private:
-	Environment* ancestor(int distance);
+    Environment* ancestor(int distance);
     std::unordered_map<std::string, Object> values;
     Environment* enclosing;
 };

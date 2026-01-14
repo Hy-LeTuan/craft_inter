@@ -205,6 +205,29 @@ std::any Set::accept(Visitor* visitor) const
     return visitor->visitSetExpr(this);
 }
 
+Super::Super(Token* keyword, Token* method)
+  : keyword{ keyword }
+  , method{ method }
+{
+}
+
+Super::~Super()
+{
+    if (keyword)
+    {
+        delete keyword;
+    }
+    if (method)
+    {
+        delete method;
+    }
+}
+
+std::any Super::accept(Visitor* visitor) const
+{
+    return visitor->visitSuperExpr(this);
+}
+
 This::This(Token* keyword)
   : keyword{ keyword }
 {

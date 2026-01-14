@@ -70,21 +70,41 @@ class ObjectParser
 
     static inline LoxCallable* GetCallable(Object val)
     {
+        if (ObjectParser::isNull(val))
+        {
+            return nullptr;
+        }
+
         return std::any_cast<LoxCallable*>(val);
     }
 
     static inline LoxFunction* GetFunction(Object val)
     {
+        if (ObjectParser::isNull(val))
+        {
+            return nullptr;
+        }
+
         return std::any_cast<LoxFunction*>(val);
     }
 
     static inline LoxClass* GetClass(Object val)
     {
+        if (ObjectParser::isNull(val))
+        {
+            return nullptr;
+        }
+
         return std::any_cast<LoxClass*>(val);
     }
 
     static inline LoxInstance* GetInstance(Object val)
     {
+        if (ObjectParser::isNull(val))
+        {
+            return nullptr;
+        }
+
         return std::any_cast<LoxInstance*>(val);
     }
 

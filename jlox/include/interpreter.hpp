@@ -31,6 +31,7 @@ class Interpreter
     Object visitLiteralExpr(const expr::Literal* expr) override;
     Object visitLogicalExpr(const expr::Logical* expr) override;
     Object visitSetExpr(const expr::Set* expr) override;
+    Object visitSuperExpr(const expr::Super* expr) override;
     Object visitThisExpr(const expr::This* expr) override;
     Object visitUnaryExpr(const expr::Unary* expr) override;
     Object visitVariableExpr(const expr::Variable* expr) override;

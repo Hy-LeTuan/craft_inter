@@ -188,6 +188,11 @@ Object AstPrinter::visitSetExpr(const expr::Set* expr)
     return "Set: [" + object + "." + fieldName + "]" + " <- " + value;
 }
 
+Object AstPrinter::visitSuperExpr(const expr::Super* expr)
+{
+    return "`Super: [super." + expr->method->getLexeme() + "]";
+}
+
 Object AstPrinter::visitThisExpr(const expr::This* expr)
 {
     return std::string{ "`THIS`" };

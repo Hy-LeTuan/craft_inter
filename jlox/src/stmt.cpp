@@ -102,8 +102,9 @@ std::any Block::accept(Visitor* visitor) const
     return visitor->visitBlockStmt(this);
 }
 
-Class::Class(Token* name, vector<Stmt*>* methods)
+Class::Class(Token* name, Variable* superclass, vector<Stmt*>* methods)
   : name{ name }
+  , superclass{ superclass }
   , methods{ methods }
 {
 }
@@ -113,6 +114,10 @@ Class::~Class()
     if (name)
     {
         delete name;
+    }
+    if (superclass)
+    {
+        delete superclass;
     }
     if (methods)
     {

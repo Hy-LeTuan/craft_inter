@@ -76,7 +76,25 @@ Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
 
 Object Interpreter::visitClassStmt(const stmt::Class* stmt)
 {
+    Object superclass = nullptr;
+
+    if (stmt->superclass)
+    {
+        superclass = evaluate(stmt->superclass);
+
+        if (!ObjectParser::isClass(superclass))
+        {
+            throw RuntimeError(stmt->superclass->name->clone(), "Superclass must be a class.");
+        }
+    }
+
     environment->define(stmt->name->getLexeme(), nullptr);
+
+    if (stmt->superclass)
+    {
+        environment = new Environment{ environment };
+        environment->define("super", superclass);
+    }
 
     std::unordered_map<std::string, LoxFunction*> methods;
 
@@ -90,7 +108,14 @@ Object Interpreter::visitClassStmt(const stmt::Class* stmt)
         methods.insert_or_assign(method->name->getLexeme(), function);
     }
 
-    LoxClass* klass = new LoxClass{ stmt->name->getLexeme(), std::move(methods) };
+    LoxClass* klass = new LoxClass{ stmt->name->getLexeme(), ObjectParser::GetClass(superclass),
+        std::move(methods) };
+
+    if (stmt->superclass)
+    {
+        environment = environment->getEnclosing();
+    }
+
     environment->assign(stmt->name, klass);
 
     return nullptr;
@@ -203,6 +228,25 @@ Object Interpreter::visitSetExpr(const expr::Set* expr)
     ObjectParser::GetInstance(object)->set(expr->name, value);
 
     return value;
+}
+
+Object Interpreter::visitSuperExpr(const expr::Super* expr)
+{
+    int distance = locals.at(expr);
+
+    LoxClass* superclass = ObjectParser::GetClass(environment->getAt(distance, "super"));
+
+    LoxInstance* object = ObjectParser::GetInstance(environment->getAt(distance - 1, "this"));
+
+    LoxFunction* method = superclass->findMethod(expr->method->getLexeme());
+
+    if (!method)
+    {
+        throw RuntimeError(
+          expr->method->clone(), "Undefind property '" + expr->method->getLexeme() + "'.");
+    }
+
+    return method->bind(object);
 }
 
 Object Interpreter::visitThisExpr(const expr::This* expr)

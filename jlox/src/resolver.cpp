@@ -57,6 +57,23 @@ Object Resolver::visitClassStmt(const stmt::Class* stmt)
     declare(stmt->name);
     define(stmt->name);
 
+    if (stmt->superclass && stmt->name->getLexeme() == stmt->superclass->name->getLexeme())
+    {
+        Lox::error(stmt->superclass->name->clone(), "A class can't inherit from itself.");
+    }
+
+    if (stmt->superclass)
+    {
+        currentClass = ClassType::SUBCLASS;
+        resolve(stmt->superclass);
+    }
+
+    if (stmt->superclass)
+    {
+        beginScope();
+        PEEK(scopes).insert_or_assign("super", true);
+    }
+
     beginScope();
 
     PEEK(scopes).insert_or_assign("this", true);
@@ -75,6 +92,11 @@ Object Resolver::visitClassStmt(const stmt::Class* stmt)
     }
 
     endScope();
+
+    if (stmt->superclass)
+    {
+        endScope();
+    }
 
     currentClass = enclosingClass;
 
@@ -195,6 +217,22 @@ Object Resolver::visitSetExpr(const expr::Set* expr)
 {
     resolve(expr->value);
     resolve(expr->object);
+
+    return nullptr;
+}
+
+Object Resolver::visitSuperExpr(const expr::Super* expr)
+{
+    if (currentClass == ClassType::NONE)
+    {
+        Lox::error(expr->keyword->clone(), "Can't use 'super' outside of a class.");
+    }
+    else if (currentClass != ClassType::SUBCLASS)
+    {
+        Lox::error(expr->keyword->clone(), "Can't use 'super' in a class with no superclass.");
+    }
+
+    resolveLocal(expr, expr->keyword);
 
     return nullptr;
 }

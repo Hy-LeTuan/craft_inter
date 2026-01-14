@@ -1,8 +1,11 @@
 #include <lox_class.hpp>
+
 #include <lox_instance.hpp>
 
-LoxClass::LoxClass(std::string name, std::unordered_map<std::string, LoxFunction*> methods)
+LoxClass::LoxClass(
+  std::string name, LoxClass* superclass, std::unordered_map<std::string, LoxFunction*> methods)
   : name{ name }
+  , superclass{ superclass }
   , methods{ methods }
 {
 }
@@ -30,6 +33,11 @@ LoxFunction* LoxClass::findMethod(std::string name)
     if (methods.count(name))
     {
         return methods.at(name);
+    }
+
+    if (superclass)
+    {
+        return superclass->findMethod(name);
     }
 
     return nullptr;

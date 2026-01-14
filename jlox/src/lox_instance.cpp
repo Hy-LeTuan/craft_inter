@@ -18,12 +18,14 @@ Object LoxInstance::get(const Token* name) const
     {
         return fields.at(name->getLexeme());
     }
-
-    LoxFunction* method = klass->findMethod(name->getLexeme());
-
-    if (method)
+    else
     {
-        return method->bind(this);
+        LoxFunction* method = klass->findMethod(name->getLexeme());
+
+        if (method)
+        {
+            return method->bind(this);
+        }
     }
 
     throw RuntimeError(name, "Undefined property '" + name->getLexeme() + "'.");

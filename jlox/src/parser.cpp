@@ -1,5 +1,6 @@
-#include <alias.hpp>
 #include <parser.hpp>
+
+#include <alias.hpp>
 
 #include <stmt.hpp>
 #include <expr.hpp>
@@ -66,6 +67,16 @@ stmt::Stmt* Parser::declaration()
 stmt::Stmt* Parser::classDeclaration()
 {
     Token* name = consume(TokenType::IDENTIFIER, "Expect class name.");
+
+    expr::Variable* superclass = nullptr;
+
+    if (match(TokenType::LESS))
+    {
+        freeUnownedToken();
+        consume(TokenType::IDENTIFIER, "Expect superclass name.");
+        superclass = new expr::Variable(previous());
+    }
+
     consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
 
     VecStmt* methods = new VecStmt{};
@@ -77,7 +88,7 @@ stmt::Stmt* Parser::classDeclaration()
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after class declaration");
 
-    return new stmt::Class(name, methods);
+    return new stmt::Class(name, superclass, methods);
 }
 
 stmt::Stmt* Parser::function(std::string kind)
@@ -541,6 +552,17 @@ expr::Expr* Parser::primary()
     else if (match(TokenType::IDENTIFIER))
     {
         return new expr::Variable(std::move(previous()));
+    }
+    else if (match(TokenType::SUPER))
+    {
+        Token* keyword = previous();
+
+        consume(TokenType::DOT, "Expect '.' after 'super'.");
+        freeUnownedToken();
+
+        Token* method = consume(TokenType::IDENTIFIER, "Expect superclass method name.");
+
+        return new expr::Super(keyword, method);
     }
     else if (match(TokenType::THIS))
     {

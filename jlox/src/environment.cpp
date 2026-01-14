@@ -1,5 +1,6 @@
-#include <runtime_error.hpp>
 #include <environment.hpp>
+
+#include <runtime_error.hpp>
 
 #if ENVIRONMENT_DEBUG
 #include <iostream>
@@ -86,4 +87,9 @@ Environment* Environment::ancestor(int distance)
     }
 
     return environment;
+}
+
+Environment* Environment::getEnclosing()
+{
+    return enclosing;
 }
