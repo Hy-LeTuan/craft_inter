@@ -1,18 +1,14 @@
 #pragma once
 
-#include "lox_instance.hpp"
-#include <alias.hpp>
-#include <lox_callable.hpp>
-#include <lox_function.hpp>
-#include <lox_class.hpp>
+#include <any>
+#include <string>
 
-#define ObjectGetDouble(val) std::any_cast<double>(val)
-#define ObjectGetBool(val) std::any_cast<bool>(val)
-#define ObjectGetString(val) std::any_cast<std::string>(val)
-#define ObjectGetCallable(val) std::any_cast<LoxCallable*>(val)
-#define ObjectGetFunction(val) std::any_cast<LoxFunction*>(val)
-#define ObjectGetClass(val) std::any_cast<LoxClass*>(val)
-#define ObjectGetInstance(val) std::any_cast<LoxInstance*>(val)
+class LoxCallable;
+class LoxClass;
+class LoxFunction;
+class LoxInstance;
+
+using Object = std::any;
 
 class ObjectParser
 {
@@ -56,4 +52,47 @@ class ObjectParser
     {
         return val.type() == typeid(LoxInstance*);
     }
+
+    static inline double GetDouble(Object val)
+    {
+        return std::any_cast<double>(val);
+    }
+
+    static inline bool GetBool(Object val)
+    {
+        return std::any_cast<bool>(val);
+    }
+
+    static inline std::string GetString(Object val)
+    {
+        return std::any_cast<std::string>(val);
+    }
+
+    static inline LoxCallable* GetCallable(Object val)
+    {
+        return std::any_cast<LoxCallable*>(val);
+    }
+
+    static inline LoxFunction* GetFunction(Object val)
+    {
+        return std::any_cast<LoxFunction*>(val);
+    }
+
+    static inline LoxClass* GetClass(Object val)
+    {
+        return std::any_cast<LoxClass*>(val);
+    }
+
+    static inline LoxInstance* GetInstance(Object val)
+    {
+        return std::any_cast<LoxInstance*>(val);
+    }
+
+    static inline bool isCallableBase(Object val)
+    {
+        return ObjectParser::isCallable(val) || ObjectParser::isClass(val) ||
+          ObjectParser::isFunction(val);
+    }
+
+    static LoxCallable* GetCallableBase(Object& val);
 };

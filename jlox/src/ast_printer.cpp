@@ -1,6 +1,7 @@
+#include <ast_printer.hpp>
+
 #include <alias.hpp>
 #include <object_utils.hpp>
-#include <ast_printer.hpp>
 
 void AstPrinter::printAll(const VecStmt& statements)
 {
@@ -17,12 +18,12 @@ void AstPrinter::print(const stmt::Stmt* stmt)
 
 std::string AstPrinter::stringify(const stmt::Stmt* stmt)
 {
-    return ObjectGetString(stmt->accept(this));
+    return ObjectParser::GetString(stmt->accept(this));
 }
 
 Object AstPrinter::visitExpressionStmt(const stmt::Expression* stmt)
 {
-    std::string expression = ObjectGetString(stmt->expression->accept(this));
+    std::string expression = ObjectParser::GetString(stmt->expression->accept(this));
     return "EXPR STATEMENT: " + expression;
 }
 
@@ -38,14 +39,14 @@ Object AstPrinter::visitFunctionStmt(const stmt::Function* stmt)
 
 Object AstPrinter::visitIfStmt(const stmt::If* stmt)
 {
-    std::string thenBranch = ObjectGetString(stmt->thenBranch->accept(this));
-    std::string condition = ObjectGetString(stmt->condition->accept(this));
+    std::string thenBranch = ObjectParser::GetString(stmt->thenBranch->accept(this));
+    std::string condition = ObjectParser::GetString(stmt->condition->accept(this));
 
     std::string message = "IF STATEMENT [" + condition + "]; then " + thenBranch;
 
     if (stmt->elseBranch)
     {
-        std::string elseBranch = ObjectGetString(stmt->elseBranch->accept(this));
+        std::string elseBranch = ObjectParser::GetString(stmt->elseBranch->accept(this));
         message = message + "else " + elseBranch;
     }
 
@@ -66,19 +67,29 @@ Object AstPrinter::visitBlockStmt(const stmt::Block* stmt)
 Object AstPrinter::visitClassStmt(const stmt::Class* stmt)
 {
     std::string name = stmt->name->getLexeme();
-    return "CLASS STATEMENT: [" + name + "]";
+    std::string message = "CLASS STATEMENT: [" + name + "]\n{\n";
+
+    for (auto stmt : *stmt->methods)
+    {
+        message += "\t";
+        message += ObjectParser::GetString(stmt->accept(this));
+    }
+
+    message += "\n}";
+
+    return message;
 }
 
 Object AstPrinter::visitPrintStmt(const stmt::Print* stmt)
 {
-    return "PRINT STATEMENT: " + ObjectGetString(stmt->expression->accept(this));
+    return "PRINT STATEMENT: " + ObjectParser::GetString(stmt->expression->accept(this));
 }
 
 Object AstPrinter::visitReturnStmt(const stmt::Return* stmt)
 {
     if (stmt->value)
     {
-        return "RETURN STATEMENT: " + ObjectGetString(stmt->value->accept(this));
+        return "RETURN STATEMENT: " + ObjectParser::GetString(stmt->value->accept(this));
     }
 
     return std::string{ "RETURN STATEMENT: null" };
@@ -90,7 +101,7 @@ Object AstPrinter::visitVarStmt(const stmt::Var* stmt)
 
     if (stmt->initializer)
     {
-        initializer = "; Initializer: " + ObjectGetString(stmt->initializer->accept(this));
+        initializer = "; Initializer: " + ObjectParser::GetString(stmt->initializer->accept(this));
     }
 
     return "VAR STATEMENT: " + stmt->name->getLexeme() + initializer;
@@ -99,11 +110,11 @@ Object AstPrinter::visitVarStmt(const stmt::Var* stmt)
 Object AstPrinter::visitWhileStmt(const stmt::While* stmt)
 {
     std::string message = "WHILE STATEMENT: (";
-    message += ObjectGetString(stmt->condition->accept(this));
+    message += ObjectParser::GetString(stmt->condition->accept(this));
     message += ")\n";
 
     message += "{\n";
-    message += ObjectGetString(stmt->body->accept(this));
+    message += ObjectParser::GetString(stmt->body->accept(this));
     message += "}\n";
 
     return message;
@@ -116,13 +127,13 @@ Object AstPrinter::visitBinaryExpr(const expr::Binary* expr)
 
 Object AstPrinter::visitCallExpr(const expr::Call* expr)
 {
-    std::string callee = ObjectGetString(expr->callee->accept(this));
+    std::string callee = ObjectParser::GetString(expr->callee->accept(this));
 
     std::string args;
 
     for (auto arg : *expr->arguments)
     {
-        args += ObjectGetString(arg->accept(this));
+        args += ObjectParser::GetString(arg->accept(this));
         args += ", ";
     }
 
@@ -134,9 +145,17 @@ Object AstPrinter::visitCallExpr(const expr::Call* expr)
     return "Function call: [" + callee + "]" + " (" + args + ")";
 }
 
+Object AstPrinter::visitGetExpr(const expr::Get* expr)
+{
+    std::string object = ObjectParser::GetString(expr->object->accept(this));
+    std::string name = expr->name->getLexeme();
+
+    return "Get: [" + object + "." + name + "]";
+}
+
 Object AstPrinter::visitAssignExpr(const expr::Assign* expr)
 {
-    std::string value = ObjectGetString(expr->value->accept(this));
+    std::string value = ObjectParser::GetString(expr->value->accept(this));
     return "(" + expr->name->getLexeme() + ")" + " <- " + value;
 }
 
@@ -160,6 +179,20 @@ Object AstPrinter::visitLogicalExpr(const expr::Logical* expr)
     return parenthesize(expr->op->getLexeme(), expr->left, expr->right);
 }
 
+Object AstPrinter::visitSetExpr(const expr::Set* expr)
+{
+    std::string object = ObjectParser::GetString(expr->object->accept(this));
+    std::string fieldName = expr->name->getLexeme();
+    std::string value = ObjectParser::GetString(expr->value->accept(this));
+
+    return "Set: [" + object + "." + fieldName + "]" + " <- " + value;
+}
+
+Object AstPrinter::visitThisExpr(const expr::This* expr)
+{
+    return "`THIS`";
+}
+
 Object AstPrinter::visitVariableExpr(const expr::Variable* expr)
 {
     return "`VAR: " + expr->name->getLexeme() + "`";
@@ -169,7 +202,7 @@ std::string AstPrinter::stringify_block(const std::vector<stmt::Stmt*>* statemen
 {
     if (statements->size() == 1)
     {
-        return "\t" + ObjectGetString(statements->at(0)->accept(this));
+        return "\t" + ObjectParser::GetString(statements->at(0)->accept(this));
     }
 
     std::string message = "";
@@ -177,7 +210,7 @@ std::string AstPrinter::stringify_block(const std::vector<stmt::Stmt*>* statemen
     int index = 0;
     for (auto stmt : *statements)
     {
-        message += "\t" + ObjectGetString(stmt->accept(this));
+        message += "\t" + ObjectParser::GetString(stmt->accept(this));
 
         if (index != statements->size() - 1)
         {

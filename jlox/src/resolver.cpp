@@ -1,5 +1,6 @@
-#include <lox.hpp>
 #include <resolver.hpp>
+
+#include <lox.hpp>
 
 #include <iostream>
 
@@ -53,6 +54,18 @@ Object Resolver::visitClassStmt(const stmt::Class* stmt)
     declare(stmt->name);
     define(stmt->name);
 
+    beginScope();
+
+    PEEK(scopes).insert_or_assign("this", true);
+
+    for (auto method : *stmt->methods)
+    {
+        FunctionType declaration = FunctionType::METHOD;
+        resolveFunction(dynamic_cast<stmt::Function*>(method), declaration);
+    }
+
+    endScope();
+
     return nullptr;
 }
 
@@ -71,6 +84,7 @@ Object Resolver::visitReturnStmt(const stmt::Return* stmt)
             Lox::error(stmt->keyword->clone(), "Can't return from top-level code.");
             break;
         case FunctionType::FUNCTION:
+        case FunctionType::METHOD:
             if (stmt->value)
             {
                 resolve(stmt->value);
@@ -156,6 +170,20 @@ Object Resolver::visitLogicalExpr(const expr::Logical* expr)
     resolve(expr->left);
     resolve(expr->right);
 
+    return nullptr;
+}
+
+Object Resolver::visitSetExpr(const expr::Set* expr)
+{
+    resolve(expr->value);
+    resolve(expr->object);
+
+    return nullptr;
+}
+
+Object Resolver::visitThisExpr(const expr::This* expr)
+{
+    resolveLocal(expr, expr->keyword);
     return nullptr;
 }
 

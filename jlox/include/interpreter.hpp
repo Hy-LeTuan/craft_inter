@@ -30,6 +30,8 @@ class Interpreter
     Object visitGroupingExpr(const expr::Grouping* expr) override;
     Object visitLiteralExpr(const expr::Literal* expr) override;
     Object visitLogicalExpr(const expr::Logical* expr) override;
+    Object visitSetExpr(const expr::Set* expr) override;
+    Object visitThisExpr(const expr::This* expr) override;
     Object visitUnaryExpr(const expr::Unary* expr) override;
     Object visitVariableExpr(const expr::Variable* expr) override;
 
@@ -51,5 +53,5 @@ class Interpreter
     void checkNumberOperands(const Token* op, Object& left, Object& right);
     std::string stringify(Object& object);
 
-    Object lookUpVariable(const Token* name, const expr::Variable* expr);
+    Object lookUpVariable(const Token* name, const expr::Expr* expr);
 };

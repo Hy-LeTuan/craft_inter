@@ -11,6 +11,7 @@ set(CLOX_SOURCES
     src/main.cpp;
     src/token.cpp;
     src/scanner.cpp;
+	src/object_utils.cpp;
     src/lox.cpp;
     src/expr.cpp;
     src/ast_printer.cpp;

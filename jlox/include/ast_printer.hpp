@@ -14,10 +14,13 @@ class AstPrinter
   public:
     Object visitBinaryExpr(const expr::Binary* expr) override;
     Object visitCallExpr(const expr::Call* expr) override;
+    Object visitGetExpr(const expr::Get* expr) override;
     Object visitAssignExpr(const expr::Assign* expr) override;
     Object visitGroupingExpr(const expr::Grouping* expr) override;
     Object visitLiteralExpr(const expr::Literal* expr) override;
     Object visitLogicalExpr(const expr::Logical* expr) override;
+    Object visitSetExpr(const expr::Set* expr) override;
+    Object visitThisExpr(const expr::This* expr) override;
     Object visitUnaryExpr(const expr::Unary* expr) override;
     Object visitVariableExpr(const expr::Variable* expr) override;
 
@@ -49,7 +52,7 @@ class AstPrinter
                try
                {
                    std::any res = exprs->accept(this);
-                   output.append(ObjectGetString(res));
+                   output.append(ObjectParser::GetString(res));
                }
                catch (const std::bad_any_cast& e)
                {

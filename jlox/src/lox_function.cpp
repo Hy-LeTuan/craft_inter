@@ -1,4 +1,5 @@
 #include <lox_function.hpp>
+
 #include <return.hpp>
 
 LoxFunction::LoxFunction(const stmt::Function* declaration, Environment* closure)
@@ -44,4 +45,12 @@ int LoxFunction::arity()
 std::string LoxFunction::toString()
 {
     return "<fn" + declaration->name->getLexeme() + ">";
+}
+
+LoxFunction* LoxFunction::bind(const LoxInstance* instance)
+{
+    Environment* environment = new Environment{ closure };
+    environment->define("this", const_cast<LoxInstance*>(instance));
+
+    return new LoxFunction(declaration, environment);
 }

@@ -1,4 +1,5 @@
 #include <expr.hpp>
+
 #include <token.hpp>
 
 #include <any>
@@ -174,6 +175,52 @@ Logical::~Logical()
 std::any Logical::accept(Visitor* visitor) const
 {
     return visitor->visitLogicalExpr(this);
+}
+
+Set::Set(Expr* object, Token* name, Expr* value)
+  : object{ object }
+  , name{ name }
+  , value{ value }
+{
+}
+
+Set::~Set()
+{
+    if (object)
+    {
+        delete object;
+    }
+    if (name)
+    {
+        delete name;
+    }
+    if (value)
+    {
+        delete value;
+    }
+}
+
+std::any Set::accept(Visitor* visitor) const
+{
+    return visitor->visitSetExpr(this);
+}
+
+This::This(Token* keyword)
+  : keyword{ keyword }
+{
+}
+
+This::~This()
+{
+    if (keyword)
+    {
+        delete keyword;
+    }
+}
+
+std::any This::accept(Visitor* visitor) const
+{
+    return visitor->visitThisExpr(this);
 }
 
 Unary::Unary(Token* op, Expr* right)

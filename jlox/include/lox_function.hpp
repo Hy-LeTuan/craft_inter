@@ -3,6 +3,8 @@
 #include <environment.hpp>
 #include <lox_callable.hpp>
 
+class LoxInstance;
+
 class LoxFunction : public LoxCallable
 {
   public:
@@ -11,6 +13,7 @@ class LoxFunction : public LoxCallable
     Object call(Interpreter* interpreter, std::vector<Object>* arguments) override;
     int arity() override;
     std::string toString() override;
+    LoxFunction* bind(const LoxInstance* instance);
 
   private:
     const stmt::Function* declaration;

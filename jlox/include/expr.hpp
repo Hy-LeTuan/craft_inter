@@ -110,6 +110,30 @@ class Logical : public Expr
     const Expr* right;
 };
 
+class Set : public Expr
+{
+  public:
+    Set(Expr* object, Token* name, Expr* value);
+    ~Set() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Expr* object;
+    const Token* name;
+    const Expr* value;
+};
+
+class This : public Expr
+{
+  public:
+    This(Token* keyword);
+    ~This() override;
+
+    std::any accept(Visitor* visitor) const override;
+
+    const Token* keyword;
+};
+
 class Unary : public Expr
 {
   public:
@@ -143,6 +167,8 @@ class Visitor
     virtual std::any visitGroupingExpr(const Grouping* expr) = 0;
     virtual std::any visitLiteralExpr(const Literal* expr) = 0;
     virtual std::any visitLogicalExpr(const Logical* expr) = 0;
+    virtual std::any visitSetExpr(const Set* expr) = 0;
+    virtual std::any visitThisExpr(const This* expr) = 0;
     virtual std::any visitUnaryExpr(const Unary* expr) = 0;
     virtual std::any visitVariableExpr(const Variable* expr) = 0;
 };

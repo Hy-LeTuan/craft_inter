@@ -342,16 +342,25 @@ expr::Expr* Parser::assignment()
         Token* equals = previous();
         expr::Expr* value = assignment();
 
-        expr::Variable* expr_var = dynamic_cast<expr::Variable*>(expr);
-
-        if (expr_var)
+        if (dynamic_cast<expr::Variable*>(expr))
         {
-            Token* name = expr_var->name->clone();
+            expr::Variable* var = dynamic_cast<expr::Variable*>(expr);
+            Token* name = var->name->clone();
 
             freeUnownedToken(equals);
-            freeExpression(expr_var);
+            freeExpression(var);
 
             return new expr::Assign{ name, value };
+        }
+        else if (dynamic_cast<expr::Get*>(expr))
+        {
+            expr::Get* get = dynamic_cast<expr::Get*>(expr);
+            expr::Set* set =
+              new expr::Set(const_cast<Expr*>(get->object), const_cast<Token*>(get->name), value);
+
+            freeUnownedToken(equals);
+
+            return set;
         }
         else
         {
@@ -532,6 +541,10 @@ expr::Expr* Parser::primary()
     else if (match(TokenType::IDENTIFIER))
     {
         return new expr::Variable(std::move(previous()));
+    }
+    else if (match(TokenType::THIS))
+    {
+        return new expr::This(std::move(previous()));
     }
     else
     {

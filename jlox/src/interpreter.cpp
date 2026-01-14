@@ -100,9 +100,20 @@ Object Interpreter::visitBlockStmt(const stmt::Block* stmt)
 Object Interpreter::visitClassStmt(const stmt::Class* stmt)
 {
     environment->define(stmt->name->getLexeme(), nullptr);
-    LoxClass* klass = new LoxClass{ stmt->name->getLexeme() };
 
-    environment->assign(stmt->name, static_cast<LoxCallable*>(klass));
+    std::unordered_map<std::string, LoxFunction*> methods;
+
+    for (auto method_base : *stmt->methods)
+    {
+        auto method = dynamic_cast<stmt::Function*>(method_base);
+
+        LoxFunction* function = new LoxFunction(method, environment);
+
+        methods.insert_or_assign(method->name->getLexeme(), function);
+    }
+
+    LoxClass* klass = new LoxClass{ stmt->name->getLexeme(), std::move(methods) };
+    environment->assign(stmt->name, klass);
 
     return nullptr;
 }
@@ -142,7 +153,8 @@ Object Interpreter::visitPrintStmt(const stmt::Print* stmt)
 
     if (ObjectParser::isDouble(value))
     {
-        std::cout << std::fixed << std::setprecision(2) << ObjectGetDouble(value) << std::endl;
+        std::cout << std::fixed << std::setprecision(2) << ObjectParser::GetDouble(value)
+                  << std::endl;
     }
     else
     {
@@ -198,6 +210,27 @@ Object Interpreter::visitLogicalExpr(const expr::Logical* expr)
     }
 
     return evaluate(expr->right);
+}
+
+Object Interpreter::visitSetExpr(const expr::Set* expr)
+{
+    Object object = evaluate(expr->object);
+
+    if (!ObjectParser::isInstance(object))
+    {
+        throw RuntimeError(expr->name, "Only instances have fields.");
+    }
+
+    Object value = evaluate(expr->value);
+    ObjectParser::GetInstance(object)->set(expr->name, value);
+
+    return value;
+}
+
+Object Interpreter::visitThisExpr(const expr::This* expr)
+{
+    std::cout << "visit this expression" << std::endl;
+    return lookUpVariable(expr->keyword, expr);
 }
 
 Object Interpreter::visitVariableExpr(const expr::Variable* expr)
@@ -281,46 +314,47 @@ Object Interpreter::visitBinaryExpr(const expr::Binary* expr)
     {
         case TokenType::GREATER:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) > ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) > ObjectParser::GetDouble(right);
         case TokenType::GREATER_EQUAL:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) >= ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) >= ObjectParser::GetDouble(right);
         case TokenType::LESS:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) < ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) < ObjectParser::GetDouble(right);
         case TokenType::LESS_EQUAL:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) <= ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) <= ObjectParser::GetDouble(right);
         case TokenType::BANG_EQUAL:
             return !isEqual(left, right);
         case TokenType::EQUAL_EQUAL:
             return isEqual(left, right);
         case TokenType::MINUS:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) - ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) - ObjectParser::GetDouble(right);
         case TokenType::SLASH:
             checkNumberOperands(expr->op, left, right);
-            if (ObjectGetDouble(right) == 0.)
+            if (ObjectParser::GetDouble(right) == 0.)
             {
                 throw RuntimeError(expr->op, "Divide by zero error.");
             }
 
-            return ObjectGetDouble(left) / ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) / ObjectParser::GetDouble(right);
         case TokenType::STAR:
             checkNumberOperands(expr->op, left, right);
-            return ObjectGetDouble(left) * ObjectGetDouble(right);
+            return ObjectParser::GetDouble(left) * ObjectParser::GetDouble(right);
         case TokenType::PLUS:
             if (ObjectParser::isDouble(left) && ObjectParser::isDouble(right))
             {
-                return ObjectGetDouble(left) + ObjectGetDouble(right);
+                return ObjectParser::GetDouble(left) + ObjectParser::GetDouble(right);
             }
             else if (ObjectParser::isString(left) && ObjectParser::isString(right))
             {
-                return ObjectGetString(left) + ObjectGetString(right);
+                return ObjectParser::GetString(left) + ObjectParser::GetString(right);
             }
             else if (ObjectParser::isString(left) && ObjectParser::isDouble(right))
             {
-                return ObjectGetString(left) + std::to_string(ObjectGetDouble(right));
+                return ObjectParser::GetString(left) +
+                  std::to_string(ObjectParser::GetDouble(right));
             }
 
             throw RuntimeError(expr->op, "Operands must be two numbers or two strings.");
@@ -342,12 +376,12 @@ Object Interpreter::visitCallExpr(const expr::Call* expr)
         arguments->push_back(evaluate(argument));
     }
 
-    if (!ObjectParser::isCallable(callee))
+    if (!ObjectParser::isCallableBase(callee))
     {
         throw RuntimeError(expr->paren, "Can only call functions and classes.");
     }
 
-    LoxCallable* function = ObjectGetCallable(callee);
+    LoxCallable* function = ObjectParser::GetCallableBase(callee);
 
     if (arguments->size() != function->arity())
     {
@@ -365,7 +399,7 @@ Object Interpreter::visitGetExpr(const expr::Get* expr)
 
     if (ObjectParser::isInstance(object))
     {
-        return ObjectGetInstance(object)->get(expr->name);
+        return ObjectParser::GetInstance(object)->get(expr->name);
     }
 
     throw RuntimeError(expr->name, "Only instances have properties.");
@@ -384,7 +418,7 @@ bool Interpreter::isTruthy(Object right)
     }
     else if (ObjectParser::isBool(right))
     {
-        return ObjectGetBool(right);
+        return ObjectParser::GetBool(right);
     }
 
     return true;
@@ -402,19 +436,19 @@ bool Interpreter::isEqual(Object& left, Object& right)
     }
     else if (ObjectParser::isString(left) && ObjectParser::isString(right))
     {
-        return ObjectGetString(left) == ObjectGetString(right);
+        return ObjectParser::GetString(left) == ObjectParser::GetString(right);
     }
     else if (ObjectParser::isDouble(left) && ObjectParser::isDouble(right))
     {
-        return ObjectGetDouble(left) == ObjectGetDouble(right);
+        return ObjectParser::GetDouble(left) == ObjectParser::GetDouble(right);
     }
     else if (ObjectParser::isString(left) && ObjectParser::isDouble(right))
     {
-        return ObjectGetString(left) == std::to_string(ObjectGetDouble(right));
+        return ObjectParser::GetString(left) == std::to_string(ObjectParser::GetDouble(right));
     }
     else if (ObjectParser::isDouble(left) && ObjectParser::isString(right))
     {
-        return ObjectGetString(right) == std::to_string(ObjectGetDouble(left));
+        return ObjectParser::GetString(right) == std::to_string(ObjectParser::GetDouble(left));
     }
 
     return false;
@@ -428,35 +462,35 @@ std::string Interpreter::stringify(Object& object)
     }
     else if (ObjectParser::isDouble(object))
     {
-        return std::to_string(ObjectGetDouble(object));
+        return std::to_string(ObjectParser::GetDouble(object));
     }
     else if (ObjectParser::isBool(object))
     {
-        bool b = ObjectGetBool(object);
+        bool b = ObjectParser::GetBool(object);
         return b ? "true" : "false";
     }
     else if (ObjectParser::isString(object))
     {
-        return ObjectGetString(object);
+        return ObjectParser::GetString(object);
     }
     else if (ObjectParser::isCallable(object))
     {
-        LoxCallable* f = ObjectGetCallable(object);
+        LoxCallable* f = ObjectParser::GetCallable(object);
         return f->toString();
     }
     else if (ObjectParser::isFunction(object))
     {
-        LoxFunction* f = ObjectGetFunction(object);
+        LoxFunction* f = ObjectParser::GetFunction(object);
         return f->toString();
     }
     else if (ObjectParser::isClass(object))
     {
-        LoxClass* c = ObjectGetClass(object);
+        LoxClass* c = ObjectParser::GetClass(object);
         return c->toString();
     }
     else if (ObjectParser::isInstance(object))
     {
-        LoxInstance* i = ObjectGetInstance(object);
+        LoxInstance* i = ObjectParser::GetInstance(object);
         return i->toString();
     }
 
@@ -507,14 +541,18 @@ void Interpreter::resolve(const expr::Expr* expression, int depth)
     locals.insert_or_assign(expression, depth);
 }
 
-Object Interpreter::lookUpVariable(const Token* name, const expr::Variable* expr)
+Object Interpreter::lookUpVariable(const Token* name, const expr::Expr* expr)
 {
     auto it = locals.find(expr);
 
     if (it != locals.end())
     {
         int distance = it->second;
-        return environment->getAt(distance, name->getLexeme());
+        std::cout << "try getting variable: " << name->getLexeme() << std::endl;
+        auto res = environment->getAt(distance, name->getLexeme());
+        std::cout << "successful in getting variable: " << name->getLexeme() << std::endl;
+
+        return res;
     }
     else
     {

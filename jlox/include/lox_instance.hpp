@@ -1,6 +1,5 @@
 #pragma once
 
-#include <object_utils.hpp>
 #include <lox_class.hpp>
 
 #include <unordered_map>
@@ -9,7 +8,8 @@ class LoxInstance
 {
   public:
     LoxInstance(LoxClass* klass);
-    Object get(const Token* name);
+    Object get(const Token* name) const;
+    void set(const Token* name, Object value);
     std::string toString();
 
   private:
