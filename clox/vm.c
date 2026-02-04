@@ -3,6 +3,7 @@
 #include "common.h"
 #include "value.h"
 #include "debug.h"
+#include "compiler.h"
 
 #include <stdio.h>
 
@@ -86,11 +87,13 @@ static InterpretResult run()
 #undef BINARY_OP
 }
 
-InterpretResult interpret(Chunk* chunk)
+InterpretResult interpret(const char* source)
 {
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-    return run();
+    compile(source);
+    // vm.chunk = chunk;
+    // vm.ip = vm.chunk->code;
+    // return run();
+    return INTERPRET_OK;
 }
 
 void push(Value value)
