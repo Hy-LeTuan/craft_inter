@@ -33,15 +33,22 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line)
     {
         int oldCapacity = chunk->capacity;
         chunk->capacity = GROW_CAPACITY(oldCapacity);
+
         chunk->code = GROW_ARRAY(uint8_t, chunk->code, oldCapacity, chunk->capacity);
+
+        if (chunk->code == NULL)
+        {
+            fprintf(stderr, "Cannot grow chunk.\n");
+        }
     }
 
     if (chunk->lines.capacity <= line)
     {
         int oldCapacity = chunk->lines.capacity;
-        chunk->lines.capacity = line + 1;
+        chunk->lines.capacity = GROW_CAPACITY(oldCapacity);
+
         chunk->lines.encoded_lines =
-          GROW_ARRAY(int, chunk->lines.encoded_lines, oldCapacity, line + 1);
+          GROW_ARRAY(int, chunk->lines.encoded_lines, oldCapacity, chunk->lines.capacity);
 
         memset(chunk->lines.encoded_lines + oldCapacity, 0,
           sizeof(int) * (chunk->lines.capacity - oldCapacity));

@@ -7,7 +7,7 @@
 void initValueArray(ValueArray* array)
 {
     array->count = 0;
-    array->values = 0;
+    array->capacity = 0;
     array->values = NULL;
 }
 
@@ -17,7 +17,15 @@ void writeValueArray(ValueArray* array, Value value)
     {
         int oldCapacity = array->capacity;
         array->capacity = GROW_CAPACITY(oldCapacity);
+
         array->values = GROW_ARRAY(Value, array->values, oldCapacity, array->capacity);
+
+        if (array->values == NULL)
+        {
+            fprintf(stderr, "Cannot grow value array.\n");
+            return;
+            freeValueArray(array);
+        }
     }
 
     array->values[array->count] = value;

@@ -1,4 +1,3 @@
-#include "chunk.h"
 #include "vm.h"
 
 #include <stdlib.h>
