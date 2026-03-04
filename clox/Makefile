@@ -7,7 +7,7 @@ main.o: main.c chunk.h debug.h vm.h
 chunk.o: chunk.c chunk.h memory.h common.h value.h
 	gcc -g -Wall -c chunk.c
 
-memory.o: memory.c memory.h common.h
+memory.o: memory.c memory.h common.h vm.h
 	gcc -g -Wall -c memory.c
 
 debug.o: debug.c debug.h chunk.h
@@ -16,7 +16,7 @@ debug.o: debug.c debug.h chunk.h
 value.o: value.c value.h memory.h common.h object.h
 	gcc -g -Wall -c value.c
 
-vm.o: vm.c vm.h chunk.h common.h value.h debug.h compiler.h
+vm.o: vm.c vm.h chunk.h common.h value.h debug.h compiler.h memory.h
 	gcc -g -Wall -c vm.c
 
 compiler.o: compiler.c compiler.h scanner.h debug.h object.h

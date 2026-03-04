@@ -1,6 +1,7 @@
 #include "object.h"
 #include "memory.h"
 #include "value.h"
+#include "vm.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,9 @@ static Obj* allocateObject(size_t size, ObjType type)
     // then, recast the pointer down to the base class
     Obj* object = (Obj*)reallocate(NULL, 0, size);
     object->type = type;
+
+    object->next = vm.objects;
+    vm.objects = object;
     return object;
 }
 
@@ -22,6 +26,11 @@ static ObjString* allocateString(char* chars, int length)
     string->length = length;
     string->chars = chars;
     return string;
+}
+
+ObjString* takeString(char* chars, int length)
+{
+    return allocateString(chars, length);
 }
 
 ObjString* copyString(const char* chars, int length)
