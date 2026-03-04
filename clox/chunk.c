@@ -77,7 +77,7 @@ void freeLineArray(LineArray* array)
     initLineArray(array);
 }
 
-int getLine(Chunk* chunk, int offset)
+int getByteLine(Chunk* chunk, int offset)
 {
     int index = 1;
     int offset_count = 0;

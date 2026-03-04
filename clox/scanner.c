@@ -161,7 +161,7 @@ static bool isAlpha(char c)
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-bool checkKeyword(int start, int length, const char* rest, TokenType type)
+TokenType checkKeyword(int start, int length, const char* rest, TokenType type)
 {
     if (scanner.current - scanner.start == start + length &&
       memcmp(scanner.start + start, rest, length) == 0)

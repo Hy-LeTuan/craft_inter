@@ -8,3 +8,5 @@ build
 test
 .cache
 test.*
+
+.clangd

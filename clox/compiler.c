@@ -65,7 +65,7 @@ static void errorAt(Token* token, const char* message)
     }
     else
     {
-        fprintf(stderr, " at '%.*s'", token->length, token->start);
+        fprintf(stderr, " at '%.*s'.", token->length, token->start);
     }
 
     fprintf(stderr, ": %s\n", message);
@@ -169,6 +169,23 @@ static void binary()
 
     switch (operatorType)
     {
+        case TOKEN_BANG_EQUAL:
+            emitBytes(OP_EQUAL, OP_NOT);
+            break;
+        case TOKEN_EQUAL_EQUAL:
+            emitByte(OP_EQUAL);
+            break;
+        case TOKEN_GREATER:
+            emitByte(OP_GREATER);
+            break;
+        case TOKEN_GREATER_EQUAL:
+            emitBytes(OP_LESS, OP_NOT);
+            break;
+        case TOKEN_LESS:
+            emitByte(OP_LESS);
+            break;
+        case TOKEN_LESS_EQUAL:
+            emitBytes(OP_GREATER, OP_NOT);
         case TOKEN_PLUS:
             emitByte(OP_ADD);
             break;
@@ -186,10 +203,29 @@ static void binary()
     }
 }
 
+static void literal()
+{
+    switch (parser.previous.type)
+    {
+        case TOKEN_FALSE:
+            emitByte(OP_FALSE);
+            break;
+        case TOKEN_NIL:
+            emitByte(OP_NIL);
+            break;
+        case TOKEN_TRUE:
+            emitByte(OP_TRUE);
+            break;
+
+        default:
+            return;
+    }
+}
+
 static void number()
 {
     double value = strtod(parser.previous.start, NULL);
-    emitConstant(value);
+    emitConstant(NUMBER_VAL(value));
 }
 
 static void unary()
@@ -200,6 +236,9 @@ static void unary()
 
     switch (operatorType)
     {
+        case TOKEN_BANG:
+            emitByte(OP_NOT);
+            break;
         case TOKEN_MINUS:
             emitByte(OP_NEGATE);
             break;
@@ -231,37 +270,49 @@ ParseRule rules[] = {
     [TOKEN_SEMICOLON] = { NULL, NULL, PREC_NONE },
     [TOKEN_SLASH] = { NULL, binary, PREC_FACTOR },
     [TOKEN_STAR] = { NULL, binary, PREC_FACTOR },
-    [TOKEN_BANG] = { NULL, NULL, PREC_NONE },
-    [TOKEN_BANG_EQUAL] = { NULL, NULL, PREC_NONE },
+    [TOKEN_BANG] = { unary, NULL, PREC_NONE },
+    [TOKEN_BANG_EQUAL] = { NULL, binary, PREC_EQUALITY },
     [TOKEN_EQUAL] = { NULL, NULL, PREC_NONE },
-    [TOKEN_EQUAL_EQUAL] = { NULL, NULL, PREC_NONE },
-    [TOKEN_GREATER] = { NULL, NULL, PREC_NONE },
-    [TOKEN_GREATER_EQUAL] = { NULL, NULL, PREC_NONE },
-    [TOKEN_LESS] = { NULL, NULL, PREC_NONE },
-    [TOKEN_LESS_EQUAL] = { NULL, NULL, PREC_NONE },
+    [TOKEN_EQUAL_EQUAL] = { NULL, binary, PREC_EQUALITY },
+    [TOKEN_GREATER] = { NULL, binary, PREC_COMPARISON },
+    [TOKEN_GREATER_EQUAL] = { NULL, binary, PREC_COMPARISON },
+    [TOKEN_LESS] = { NULL, binary, PREC_COMPARISON },
+    [TOKEN_LESS_EQUAL] = { NULL, binary, PREC_COMPARISON },
     [TOKEN_IDENTIFIER] = { NULL, NULL, PREC_NONE },
     [TOKEN_STRING] = { NULL, NULL, PREC_NONE },
     [TOKEN_NUMBER] = { number, NULL, PREC_NONE },
     [TOKEN_AND] = { NULL, NULL, PREC_NONE },
     [TOKEN_CLASS] = { NULL, NULL, PREC_NONE },
     [TOKEN_ELSE] = { NULL, NULL, PREC_NONE },
-    [TOKEN_FALSE] = { NULL, NULL, PREC_NONE },
+    [TOKEN_FALSE] = { literal, NULL, PREC_NONE },
     [TOKEN_FOR] = { NULL, NULL, PREC_NONE },
     [TOKEN_FUN] = { NULL, NULL, PREC_NONE },
     [TOKEN_IF] = { NULL, NULL, PREC_NONE },
-    [TOKEN_NIL] = { NULL, NULL, PREC_NONE },
+    [TOKEN_NIL] = { literal, NULL, PREC_NONE },
     [TOKEN_OR] = { NULL, NULL, PREC_NONE },
     [TOKEN_PRINT] = { NULL, NULL, PREC_NONE },
     [TOKEN_RETURN] = { NULL, NULL, PREC_NONE },
     [TOKEN_SUPER] = { NULL, NULL, PREC_NONE },
     [TOKEN_THIS] = { NULL, NULL, PREC_NONE },
-    [TOKEN_TRUE] = { NULL, NULL, PREC_NONE },
+    [TOKEN_TRUE] = { literal, NULL, PREC_NONE },
     [TOKEN_VAR] = { NULL, NULL, PREC_NONE },
     [TOKEN_WHILE] = { NULL, NULL, PREC_NONE },
     [TOKEN_ERROR] = { NULL, NULL, PREC_NONE },
     [TOKEN_EOF] = { NULL, NULL, PREC_NONE },
 };
 
+/*
+ * This function lies at the heart of the Vaughan Pratt parsing method. The idea is built on the
+ * fact that every expression, by definition of this parsing method, starts with a prefix token.
+ * This token maybe a number, an open bracket, an identifier, or anything that is allowed by the
+ * language and scannable by the scanner (lexer). Then, since this token is definitely a part of
+ * some prefix operation, we retrieve the correct function to compile this prefix operation from the
+ * call table. What happens afterwards is that since we only have 1 lookahead token, we only know
+ * after compiling the prefix operation whether it is a standalone expression or an operand of an
+ * infix operator. If it is, then we continually compile the remaining part of the infix operation,
+ * only stopping until there is no more infix operation or if the infix operation has a lower
+ * precedence than the STARTING prefix operation.
+ */
 static void parsePrecedence(Precedence precedence)
 {
     advance();
@@ -286,7 +337,7 @@ static void parsePrecedence(Precedence precedence)
 
         if (infixRule == NULL)
         {
-            error("Invalid infix rule.");
+            error("Expect infix operand.");
             return;
         }
 
