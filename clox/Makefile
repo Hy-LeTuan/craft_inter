@@ -1,5 +1,5 @@
-main: main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o
-	gcc -g main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o -o main
+main: main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o
+	gcc -g main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o -o main
 
 main.o: main.c chunk.h debug.h vm.h
 	gcc -g -Wall -c main.c
@@ -13,17 +13,20 @@ memory.o: memory.c memory.h common.h
 debug.o: debug.c debug.h chunk.h
 	gcc -g -Wall -c debug.c
 
-value.o: value.c value.h memory.h common.h
+value.o: value.c value.h memory.h common.h object.h
 	gcc -g -Wall -c value.c
 
 vm.o: vm.c vm.h chunk.h common.h value.h debug.h compiler.h
 	gcc -g -Wall -c vm.c
 
-compiler.o: compiler.c compiler.h scanner.h debug.h
+compiler.o: compiler.c compiler.h scanner.h debug.h object.h
 	gcc -g -Wall -c compiler.c
 
 scanner.o: scanner.c scanner.h
 	gcc -g -Wall -c scanner.c
+
+object.o: object.c object.h memory.h value.h
+	gcc -g -Wall -c object.c
 
 clean:
 	rm -f *.o main
