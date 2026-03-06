@@ -16,7 +16,7 @@ debug.o: debug.c debug.h chunk.h
 value.o: value.c value.h memory.h common.h object.h
 	gcc -g -Wall -c value.c
 
-vm.o: vm.c vm.h chunk.h common.h value.h debug.h compiler.h memory.h
+vm.o: vm.c vm.h chunk.h common.h value.h debug.h compiler.h memory.h table.h
 	gcc -g -Wall -c vm.c
 
 compiler.o: compiler.c compiler.h scanner.h debug.h object.h
@@ -25,8 +25,11 @@ compiler.o: compiler.c compiler.h scanner.h debug.h object.h
 scanner.o: scanner.c scanner.h
 	gcc -g -Wall -c scanner.c
 
-object.o: object.c object.h memory.h value.h
+object.o: object.c object.h memory.h value.h table.h
 	gcc -g -Wall -c object.c
+
+table.o: table.c table.h memory.h object.h table.h value.h
+	gcc -g -Wall -c table.c
 
 clean:
 	rm -f *.o main
