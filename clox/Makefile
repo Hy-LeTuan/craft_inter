@@ -1,5 +1,5 @@
-main: main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o
-	gcc -g main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o -o main
+main: main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o table.o
+	gcc -g main.o chunk.o memory.o debug.o value.o vm.o compiler.o scanner.o object.o table.o -o main
 
 main.o: main.c chunk.h debug.h vm.h
 	gcc -g -Wall -c main.c
