@@ -1,4 +1,12 @@
-project('', 'c')
+project('', 'c', version : '1.0')
+
+buildtype = get_option('buildtype')
+
+if buildtype == 'debug'
+  add_global_arguments('-DDEBUG_PRINT_CODE', language : 'c')
+  add_global_arguments('-DDEBUG_TRACE_EXECUTION', language : 'c')
+  add_global_arguments('-DDEBUG_BYTECODE_EXECUTION', language : 'c')
+endif
 
 executable('clox',
   'main.c',
